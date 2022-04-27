@@ -23,16 +23,10 @@ PVector ofsetTemp = new PVector(0, 0);
 PVector startOfset = new PVector(0, 0);
 float tempScale; //saves the scale (zoom) of the frame for the next frame: if image and scale are the same, the image of the last frame in pixelMode can be used and does not have to be processed again
 boolean isPixelMode = true, isGrid = true, isColorPicking = false;
-<<<<<<< HEAD
 float GUIScaleW, GUIScaleH;
 
 void setup() {
-  size(1080, 720);
-=======
-
-void setup() {
   fullScreen();
->>>>>>> parent of 969ac8a (GUI improvment and save pallet implemented)
   frameRate(30);
   surface.setTitle("Picture-Matcher v1.0");
   surface.setResizable(true);
@@ -50,14 +44,11 @@ void setup() {
   IclearPallet = loadImage("Buttons/clearPallet.png");
   Ioff_pickColor = loadImage("Buttons/off_pickColor.png");
   Ion_pickColor = loadImage("Buttons/on_pickColor.png");
-<<<<<<< HEAD
-=======
 
   box = new Textbox(5, 40, 200, 30);
   saveBox = new Textbox(5, 176+50, 200, 30);
   palletBox = new Textbox(5, 260+100, 200, 30);
   palletSave = new Textbox(width-200-10, height-200, 200, 30);
->>>>>>> parent of 969ac8a (GUI improvment and save pallet implemented)
 
   GUIScaleW = width/1920f;
   GUIScaleH = height/1080f;
@@ -84,9 +75,10 @@ void setup() {
   s.scale = 0.125;
   loadPallet("colors.csv");
   //default Text in Text-Boxes
-  box.replaceText("image.png");
+  box.replaceText("pixelart1.png");
   saveBox.replaceText("save");
   palletBox.replaceText("colors.csv");
+  palletSave.replaceText("user-pallet");
 }
 
 void draw() {
@@ -121,17 +113,11 @@ void draw() {
 
   //writes the text
   fill(255);
-<<<<<<< HEAD
   textSize(24*GUIScaleW);
   text("Save Pallet as:", width-210, height-160-15-36+5);
   text("Import Image named: (+.png/.jpg)", 5, 35);
   text("Save Image as:", 5, 216+5);
   text("Import Color-Pallet named: (+.csv/.png/.jpg)", 5, 355);
-=======
-  text("Import Image named: (+Extension)", 5, 35);
-  text("Save Image as:", 5, 216);
-  text("Import Color-Pallet named: (+.csv)", 5, 355);
->>>>>>> parent of 969ac8a (GUI improvment and save pallet implemented)
 
   //displays all Text-Boyes, buttons and sliders
   box.display();
@@ -244,6 +230,9 @@ void savePallet(String s, ColorPallet p, PImage img) {
   saveTable(t, "color pallets/"+s+".csv");
   loading = "";
   loadPallet("image-pallet.csv");
+  DebugC = color(0, 255, 0);
+  GUIDebug ="Successfully saved Pallet: "+"color pallets/"+s+".csv";
+  println("Successfully saved Pallet: "+"color pallets/"+s+".csv");
 }
 
 //returns an Image that recreates an Image with a Color-pallet (only with specific colors)
@@ -304,6 +293,11 @@ void keyPressed() {
   palletBox.KeyPressed(key, keyCode);
   palletSave.KeyPressed(key, keyCode);
   startOfset = new PVector(mouseX, mouseY);
+  if (key == DELETE) {
+    if (Pallet.isOneColorSelected) {
+      Pallet.deleteColor(Pallet.colorPicked);
+    }
+  }
 }
 
 void mouseDragged() {
@@ -406,8 +400,6 @@ void mouseClicked() {
     Pallet.clearPallet();
     println("Pallet cleard!");
   }
-
-  s.Released();
 }
 
 void mouseReleased() {
@@ -429,6 +421,7 @@ void mouseReleased() {
     ofset.y = -1.5*height;
   }
   Pallet.calculateColorPicked(mouseX, mouseY);
+  s.Released();
 }
 
 //creates a Color-Pallet with an Image, saves it in "color pallets/image-pallet.csv" and then loads it
@@ -491,6 +484,7 @@ void drawSharpImage(PImage img, float x, float y, float w, float h) {
     image(img, x, y, w, h);
   }
   if (isGrid) {
+    strokeWeight(0.25);
     stroke(0);
     fill(0);
     x=x-w/2;

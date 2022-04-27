@@ -73,21 +73,44 @@ class ColorPallet {
         colorPicked = floor((x-displayX)/colorWidth);
       }
     } else {
-     isOneColorSelected = false; 
+      isOneColorSelected = false;
     }
   }
 
   void displaySelected() {
-      if (isOneColorSelected) {
-        fill(15, 15, 15, 80);
-        stroke(80, 200, 255);
-        strokeWeight(3);
-        if (!isVertically) {
-          rect(displayX+colorPicked*colorWidth, displayY, colorWidth, displayH);
-        } else {
-          rect(displayX, displayY+colorPicked*colorHeight, displayW, colorHeight);
-        }
+    if (isOneColorSelected) {
+      fill(15, 15, 15, 80);
+      stroke(80, 200, 255);
+      strokeWeight(3);
+      if (!isVertically) {
+        rect(displayX+colorPicked*colorWidth, displayY, colorWidth, displayH);
+      } else {
+        rect(displayX, displayY+colorPicked*colorHeight, displayW, colorHeight);
       }
+    }
   }
-  
+
+  void deleteColor(int z) {
+    Color[] cl = colors;
+    color[] pl = pallet;
+    colors = new Color[pallet.length-1];
+    pallet = new color[colors.length];
+    for (int i = 0; i < pallet.length; i++) {
+      if (i>=z) {
+        colors[i] = cl[i+1];
+        pallet[i] = pl[i+1];
+      } else {
+        colors[i] = cl[i];
+        pallet[i] = pl[i];
+      }
+      isOneColorSelected = false;
+      if (isVertically) {
+        colorWidth = displayW;
+        colorHeight = ((displayH*1f)/(pallet.length*1f));
+      } else {
+        colorWidth = ((displayW*1f)/(pallet.length*1f));
+        colorHeight = displayH;
+      }
+    }
+  }
 }
