@@ -6,11 +6,31 @@
  [ni]: markers for not written code (not implemented [yet])
  */
 
+/*
+To do:
+-import new Images
+-initilize new buttons and TextFields
+-maybe do a GUI_Layer class
+
+List of Buttons:
+Menue: b_Image (switch), b_Pallet (switch), b_Rendering (switch)
+  Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch)
+         Filter: b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur
+         Edit: b_Rotate, b_Mirror_h, b_Mirror_v
+  Pallet: b_Import (again), b_load_img-pallet, b_Save1 (again), b_Clear_Pallet, b_Sort_Colors, b_Pick_Color (switch), b_Switch
+  Rendering: b_Grid (switch), b_Pixel_Mode (switch), b_RGB_Mode (switch), b_XY_Mode (switch)
+
+List of TextFields:
+   Image: tf_Import, tf_Save, tf_Change
+   Pallet: tf_Import (again), tf_Save (again)
+
+*/
 PImage image = new PImage();
 Table colorTable = new Table();
 ColorPicture pixelArray;
 Textbox box, saveBox, palletBox, palletSave;
-Button submit, match, save, submit2, loadImgPallet, previous, pmMode, gridMode, clearPallet, pickColor, savePallet;
+Button b_m_Image, b_m_Pallet, b_m_Rendering;
+//Button submit, match, save, submit2, loadImgPallet, previous, pmMode, gridMode, clearPallet, pickColor, savePallet;
 PImage Isubmit, Imatch, Isave, ImgPallet, Iprevious, Itemp, ItempScale, Ion_PM, Ioff_PM, Ion_Grid, Ioff_Grid, IclearPallet, Ioff_pickColor, Ion_pickColor;
 String GUIDebug = "";
 color DebugC = color(0, 255, 0);
@@ -25,9 +45,10 @@ float tempScale; //saves the scale (zoom) of the frame for the next frame: if im
 boolean isPixelMode = true, isGrid = true, isColorPicking = false;
 float GUIScaleW, GUIScaleH;
 
+
 void setup() {
-  size(720, 480);
-  //fullScreen();
+  //size(720, 480);
+  fullScreen();
   frameRate(30);
   surface.setTitle("Picture-Matcher v1.0");
   surface.setResizable(false);
@@ -48,37 +69,38 @@ void setup() {
 
   GUIScaleW = width/1920f;
   GUIScaleH = height/1080f;
+  
+  //b_m_image = new Button();
+  //box = new Textbox(5, 40, 200, 30);
+  //saveBox = new Textbox(5, 176+50, 200, 30);
+  //palletBox = new Textbox(5, 260+100, 200, 30);
+  //palletSave = new Textbox(width-200-10, height-200, 200, 30);
 
-  box = new Textbox(5, 40, 200, 30);
-  saveBox = new Textbox(5, 176+50, 200, 30);
-  palletBox = new Textbox(5, 260+100, 200, 30);
-  palletSave = new Textbox(width-200-10, height-200, 200, 30);
-
-  box = new Textbox(int(5*GUIScaleW), int(GUIScaleH*40), int(GUIScaleW*200), int(GUIScaleH*30));
-  saveBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*(176+50)), int(GUIScaleW*200), int(GUIScaleH*30));
-  palletBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*360), int(GUIScaleW*200), int(GUIScaleH*30));
-  palletSave = new Textbox(width+int(GUIScaleW*(-210)), height+int(GUIScaleH*(-200)), int(GUIScaleW*200), int(GUIScaleH*30));
-  //GUIScale wrong implemented: only numbers with GUI und nicht width/height
-  submit = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*80), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  submit2 = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*(300+100)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  match = new Button(true, Imatch, true, int(GUIScaleW*73), int(GUIScaleH*128), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  save = new Button(true, Isave, true, int(GUIScaleW*73), int(GUIScaleH*(216+50)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  pmMode = new Button(true, Ion_PM, Ioff_PM, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*10), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
-  loadImgPallet = new Button(true, ImgPallet, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
-  previous = new Button(true, Iprevious, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
-  gridMode = new Button(true, Ion_Grid, Ioff_Grid, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*(10+38+10)), int(GUIScaleW* 60), int(GUIScaleH*38), 0, false);
-  clearPallet = new Button(true, IclearPallet, true, width+int(GUIScaleW*(-60-10)), height+int(GUIScaleH*(-348)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  pickColor = new Button(true, Ioff_pickColor, Ion_pickColor, true, int(width-GUIScaleW*(70)), int((height+GUIScaleH*(-348+38+10))), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
-  savePallet = new Button(true, Isave, true, width+int(GUIScaleW*(-135)), height+int(GUIScaleH*(-160)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //box = new Textbox(int(5*GUIScaleW), int(GUIScaleH*40), int(GUIScaleW*200), int(GUIScaleH*30));
+  //saveBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*(176+50)), int(GUIScaleW*200), int(GUIScaleH*30));
+  //palletBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*360), int(GUIScaleW*200), int(GUIScaleH*30));
+  //palletSave = new Textbox(width+int(GUIScaleW*(-210)), height+int(GUIScaleH*(-200)), int(GUIScaleW*200), int(GUIScaleH*30));
+  ////GUIScale wrong implemented: only numbers with GUI und nicht width/height
+  //submit = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*80), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //submit2 = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*(300+100)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //match = new Button(true, Imatch, true, int(GUIScaleW*73), int(GUIScaleH*128), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //save = new Button(true, Isave, true, int(GUIScaleW*73), int(GUIScaleH*(216+50)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //pmMode = new Button(true, Ion_PM, Ioff_PM, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*10), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
+  //loadImgPallet = new Button(true, ImgPallet, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
+  //previous = new Button(true, Iprevious, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
+  //gridMode = new Button(true, Ion_Grid, Ioff_Grid, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*(10+38+10)), int(GUIScaleW* 60), int(GUIScaleH*38), 0, false);
+  //clearPallet = new Button(true, IclearPallet, true, width+int(GUIScaleW*(-60-10)), height+int(GUIScaleH*(-348)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //pickColor = new Button(true, Ioff_pickColor, Ion_pickColor, true, int(width-GUIScaleW*(70)), int((height+GUIScaleH*(-348+38+10))), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
+  //savePallet = new Button(true, Isave, true, width+int(GUIScaleW*(-135)), height+int(GUIScaleH*(-160)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
   s.scale = 0.125;
   loadPallet("colors.csv");
   //default Text in Text-Boxes
-  box.replaceText("pixelart1.png");
-  saveBox.replaceText("save");
-  palletBox.replaceText("colors.csv");
-  palletSave.replaceText("user-pallet");
+  //box.replaceText("pixelart1.png");
+  //saveBox.replaceText("save");
+  //palletBox.replaceText("colors.csv");
+  //palletSave.replaceText("user-pallet");
 }
 
 void draw() {
@@ -111,31 +133,31 @@ void draw() {
   imageMode(CORNER);
 
   //writes the text
-  fill(255);
-  textSize(24*GUIScaleW);
-  text("Save Pallet as:", width-int(GUIScaleW*210), height-int(GUIScaleH*(205)));
-  text("Import Image named: (+.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*35));
-  text("Save Image as:", int(GUIScaleW*5), int(GUIScaleH*216+5));
-  text("Import Color-Pallet named: (+.csv/.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*355));
+  //fill(255);
+  //textSize(24*GUIScaleW);
+  //text("Save Pallet as:", width-int(GUIScaleW*210), height-int(GUIScaleH*(205)));
+  //text("Import Image named: (+.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*35));
+  //text("Save Image as:", int(GUIScaleW*5), int(GUIScaleH*216+5));
+  //text("Import Color-Pallet named: (+.csv/.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*355));
 
   //displays all Text-Boyes, buttons and sliders
-  box.display();
-  saveBox.display();
-  palletBox.display();
-  palletSave.display();
+  //box.display();
+  //saveBox.display();
+  //palletBox.display();
+  //palletSave.display();
 
-  submit.show2();
-  submit2.show2();
-  match.show2();
-  save.show2();
+  //submit.show2();
+  //submit2.show2();
+  //match.show2();
+  //save.show2();
   s.show();
-  previous.show2();
-  loadImgPallet.show2();
-  pmMode.show2();
-  gridMode.show2();
-  pickColor.show2();
-  clearPallet.show2();
-  savePallet.show2();
+  //previous.show2();
+  //loadImgPallet.show2();
+  //pmMode.show2();
+  //gridMode.show2();
+  //pickColor.show2();
+  //clearPallet.show2();
+  //savePallet.show2();
 
   //displays the color-pallet
   Pallet.display();
@@ -275,10 +297,10 @@ void matchP() {
 }
 
 void mousePressed() {
-  box.pressed(mouseX, mouseY);
-  saveBox.pressed(mouseX, mouseY);
-  palletBox.pressed(mouseX, mouseY);
-  palletSave.pressed(mouseX, mouseY);
+  //box.pressed(mouseX, mouseY);
+  //saveBox.pressed(mouseX, mouseY);
+  //palletBox.pressed(mouseX, mouseY);
+  //palletSave.pressed(mouseX, mouseY);
 
   s.Pressed();
 
@@ -287,10 +309,10 @@ void mousePressed() {
 }
 
 void keyPressed() {
-  box.KeyPressed(key, keyCode);
-  saveBox.KeyPressed(key, keyCode);
-  palletBox.KeyPressed(key, keyCode);
-  palletSave.KeyPressed(key, keyCode);
+  //box.KeyPressed(key, keyCode);
+  //saveBox.KeyPressed(key, keyCode);
+  //palletBox.KeyPressed(key, keyCode);
+  //palletSave.KeyPressed(key, keyCode);
   startOfset = new PVector(mouseX, mouseY);
   if (key == DELETE) {
     if (Pallet.isOneColorSelected) {
@@ -303,7 +325,8 @@ void mouseDragged() {
   s.Dragged();
 
   //every frame the mouse gets dragged, a temporary offset gets calculated to add it to offset after mouse gets released
-  if (s.selected == false && submit.touch() == false && submit2.touch() == false && match.touch() == false) {
+  //if (s.selected == false && submit.touch() == false && submit2.touch() == false && match.touch() == false) {
+    if (s.selected == false) {
     ofsetTemp = new PVector((mouseX-startOfset.x), (mouseY-startOfset.y));
   }
 }
@@ -323,82 +346,82 @@ void mouseWheel(MouseEvent event) {
 void mouseClicked() {
 
   //(if Button is pressed) tries to load an Image and sends Error-message when it fails
-  if (submit.touch()&&mouseButton==LEFT) {
-    try {
-      image = loadImage(box.Text);
-      DebugC = color(0, 255, 0);
-      GUIDebug = "Successfully loaded Picture named: " + box.Text;
-      println("Picture successfully loaded: "+box.Text);
-    }
-    catch(Exception e) {
-      println("mouseReleased-Function 1: "+e);
-      DebugC = color(255, 0, 0);
-      GUIDebug = "Invalid name or file not found: " + box.Text;
-    }
-  }
+  //if (submit.touch()&&mouseButton==LEFT) {
+  //  try {
+  //    image = loadImage(box.Text);
+  //    DebugC = color(0, 255, 0);
+  //    GUIDebug = "Successfully loaded Picture named: " + box.Text;
+  //    println("Picture successfully loaded: "+box.Text);
+  //  }
+  //  catch(Exception e) {
+  //    println("mouseReleased-Function 1: "+e);
+  //    DebugC = color(255, 0, 0);
+  //    GUIDebug = "Invalid name or file not found: " + box.Text;
+  //  }
+  //}
 
-  //(if Button is pressed) starts a thread to Match the colos of an Image with a pallet
-  if (match.touch()&&mouseButton==LEFT) {
-    thread("matchP");
-  }
+  ////(if Button is pressed) starts a thread to Match the colos of an Image with a pallet
+  //if (match.touch()&&mouseButton==LEFT) {
+  //  thread("matchP");
+  //}
 
-  //(if Button is pressed) saves the current Image in /saved Images/ with the name in the Textbox (as .png)
-  if (save.touch()&&mouseButton==LEFT) {
-    image.save("saved Images/"+saveBox.Text+".png");
-    DebugC = color(0, 255, 0);
-    GUIDebug = "Successfully stored Picture as: "+saveBox.Text+".png"+ " | in PictureColorMatcher/saved Images";
-    println("Picture successfully saved: "+saveBox.Text+".png" + " | in PictureColorMatcher/saved Images");
-  }
+  ////(if Button is pressed) saves the current Image in /saved Images/ with the name in the Textbox (as .png)
+  //if (save.touch()&&mouseButton==LEFT) {
+  //  image.save("saved Images/"+saveBox.Text+".png");
+  //  DebugC = color(0, 255, 0);
+  //  GUIDebug = "Successfully stored Picture as: "+saveBox.Text+".png"+ " | in PictureColorMatcher/saved Images";
+  //  println("Picture successfully saved: "+saveBox.Text+".png" + " | in PictureColorMatcher/saved Images");
+  //}
 
-  //(if Button is pressed) loads the pallet of the current image
-  if (loadImgPallet.touch()&&mouseButton==LEFT) {
-    thread("loadPalletWithImage");
-    println("Pallet from image successfully loaded");
-  }
+  ////(if Button is pressed) loads the pallet of the current image
+  //if (loadImgPallet.touch()&&mouseButton==LEFT) {
+  //  thread("loadPalletWithImage");
+  //  println("Pallet from image successfully loaded");
+  //}
 
-  //(if Button is pressed) loads the image-pallet.csv file, so if a pallet from a Image gets saved, it can be accesed directly in the next boot
-  if (previous.touch()&&mouseButton==LEFT) {
-    loadPallet("image-pallet.csv");
-  }
+  ////(if Button is pressed) loads the image-pallet.csv file, so if a pallet from a Image gets saved, it can be accesed directly in the next boot
+  //if (previous.touch()&&mouseButton==LEFT) {
+  //  loadPallet("image-pallet.csv");
+  //}
 
-  //(if Button is pressed) saves the current Pallet (with name of the palletSave-Textbox)
-  if (savePallet.touch()&&mouseButton==LEFT) {
-    savePallet(palletSave.Text, Pallet, image);
-  }
+  ////(if Button is pressed) saves the current Pallet (with name of the palletSave-Textbox)
+  //if (savePallet.touch()&&mouseButton==LEFT) {
+  //  savePallet(palletSave.Text, Pallet, image);
+  //}
 
-  //(if Button is pressed) saves the current pallet
-  if (submit2.touch()&&mouseButton==LEFT) {
-    //not implemented yet [ni]
-  }
+  ////(if Button is pressed) saves the current pallet
+  //if (submit2.touch()&&mouseButton==LEFT) {
+  //  //not implemented yet [ni]
+  //}
 
-  //(if Button is pressed) switches between rendering-mode of PixelMode on and off (renders clear and sharp pixel-images if it is on)
-  //and switches the image of the button (from off to on and vice versa)
-  if (pmMode.touch()&&mouseButton==LEFT) {
-    isPixelMode = !isPixelMode;
-    pmMode.pictureChange();
-    println("PixelMode activated: "+isPixelMode);
-  }
+  ////(if Button is pressed) switches between rendering-mode of PixelMode on and off (renders clear and sharp pixel-images if it is on)
+  ////and switches the image of the button (from off to on and vice versa)
+  //if (pmMode.touch()&&mouseButton==LEFT) {
+  //  isPixelMode = !isPixelMode;
+  //  pmMode.pictureChange();
+  //  println("PixelMode activated: "+isPixelMode);
+  //}
 
-  //(if Button is pressed) switches between rendering-mode of the Grid and switches the Image/state of the button
-  if (gridMode.touch()&&mouseButton==LEFT) {
-    isGrid = !isGrid;
-    gridMode.pictureChange();
-    println("Grid activated: "+isGrid);
-  }
+  ////(if Button is pressed) switches between rendering-mode of the Grid and switches the Image/state of the button
+  //if (gridMode.touch()&&mouseButton==LEFT) {
+  //  isGrid = !isGrid;
+  //  gridMode.pictureChange();
+  //  println("Grid activated: "+isGrid);
+  //}
 
-  //(if Button is pressed) switches picture of the button
-  //isColorPicking is not implemented yet: it should allow the user to pick a color (of a pixel) of the current image and add it to the curtrent pallet
-  //[ni]
-  if (pickColor.touch()&&mouseButton==LEFT) {
-    isColorPicking = !isColorPicking;
-    pickColor.pictureChange();
-  }
+  ////(if Button is pressed) switches picture of the button
+  ////isColorPicking is not implemented yet: it should allow the user to pick a color (of a pixel) of the current image and add it to the curtrent pallet
+  ////[ni]
+  //if (pickColor.touch()&&mouseButton==LEFT) {
+  //  isColorPicking = !isColorPicking;
+  //  pickColor.pictureChange();
+  //}
 
-  //(if Button is pressed) clears/empties the current color-pallet
-  if (clearPallet.touch()&&mouseButton==LEFT) {
-    Pallet.clearPallet();
-    println("Pallet cleard!");
-  }
+  ////(if Button is pressed) clears/empties the current color-pallet
+  //if (clearPallet.touch()&&mouseButton==LEFT) {
+  //  Pallet.clearPallet();
+  //  println("Pallet cleard!");
+  //}
 }
 
 void mouseReleased() {
