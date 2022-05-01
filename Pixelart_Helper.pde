@@ -1,5 +1,5 @@
-/* //<>//
-Author: Philipp Schröder aka KnowOneWasTaken
+/* //<>// //<>//
+ Author: Philipp Schröder aka KnowOneWasTaken
  Version: 1.0
  Last time edited: 25.04.2022
  
@@ -26,10 +26,11 @@ boolean isPixelMode = true, isGrid = true, isColorPicking = false;
 float GUIScaleW, GUIScaleH;
 
 void setup() {
-  fullScreen();
+  size(720, 480);
+  //fullScreen();
   frameRate(30);
   surface.setTitle("Picture-Matcher v1.0");
-  surface.setResizable(true);
+  surface.setResizable(false);
   surface.setLocation(0, 0);
   image = createImage(10, 10, RGB);
   Isave = loadImage("Buttons/Save.png");
@@ -45,33 +46,32 @@ void setup() {
   Ioff_pickColor = loadImage("Buttons/off_pickColor.png");
   Ion_pickColor = loadImage("Buttons/on_pickColor.png");
 
+  GUIScaleW = width/1920f;
+  GUIScaleH = height/1080f;
+
   box = new Textbox(5, 40, 200, 30);
   saveBox = new Textbox(5, 176+50, 200, 30);
   palletBox = new Textbox(5, 260+100, 200, 30);
   palletSave = new Textbox(width-200-10, height-200, 200, 30);
 
-  GUIScaleW = width/1920f;
-  GUIScaleH = height/1080f;
-
   box = new Textbox(int(5*GUIScaleW), int(GUIScaleH*40), int(GUIScaleW*200), int(GUIScaleH*30));
   saveBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*(176+50)), int(GUIScaleW*200), int(GUIScaleH*30));
   palletBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*360), int(GUIScaleW*200), int(GUIScaleH*30));
-  palletSave = new Textbox(int(GUIScaleW*(width-210)), int(GUIScaleH*(height-200)), int(GUIScaleW*200), int(GUIScaleH*30));
+  palletSave = new Textbox(width+int(GUIScaleW*(-210)), height+int(GUIScaleH*(-200)), int(GUIScaleW*200), int(GUIScaleH*30));
+  //GUIScale wrong implemented: only numbers with GUI und nicht width/height
+  submit = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*80), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  submit2 = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*(300+100)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  match = new Button(true, Imatch, true, int(GUIScaleW*73), int(GUIScaleH*128), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  save = new Button(true, Isave, true, int(GUIScaleW*73), int(GUIScaleH*(216+50)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  pmMode = new Button(true, Ion_PM, Ioff_PM, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*10), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
+  loadImgPallet = new Button(true, ImgPallet, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
+  previous = new Button(true, Iprevious, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
+  gridMode = new Button(true, Ion_Grid, Ioff_Grid, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*(10+38+10)), int(GUIScaleW* 60), int(GUIScaleH*38), 0, false);
+  clearPallet = new Button(true, IclearPallet, true, width+int(GUIScaleW*(-60-10)), height+int(GUIScaleH*(-348)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  pickColor = new Button(true, Ioff_pickColor, Ion_pickColor, true, int(width-GUIScaleW*(70)), int((height+GUIScaleH*(-348+38+10))), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
+  savePallet = new Button(true, Isave, true, width+int(GUIScaleW*(-135)), height+int(GUIScaleH*(-160)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
-  println("GUIScale weiter implementieren!");
-  submit = new Button(true, Isubmit, true, int(GUIScaleW*73), 80, int(GUIScaleW*60), 38, false);
-  submit2 = new Button(true, Isubmit, true, int(GUIScaleW*73), 300+100, int(GUIScaleW*60), 38, false);
-  match = new Button(true, Imatch, true, int(GUIScaleW*73), 128, int(GUIScaleW*60), 38, false);
-  save = new Button(true, Isave, true, int(GUIScaleW*73), 216+50, int(GUIScaleW*60), 38, false);
-  pmMode = new Button(true, Ion_PM, Ioff_PM, true, int(GUIScaleW*(width-70)), 10, 60, 38, 0, false);
-  loadImgPallet = new Button(true, ImgPallet, true, 73-30, 400+38+10, 120, 38, false);
-  previous = new Button(true, Iprevious, true, 73-30, 400+38+10+38+10, 120, 38, false);
-  gridMode = new Button(true, Ion_Grid, Ioff_Grid, true, width-70, 10+38+10, 60, 38, 0, false);
-  clearPallet = new Button(true, IclearPallet, true, width-60-10, height-348, 60, 38, false);
-  pickColor = new Button(true, Ioff_pickColor, Ion_pickColor, true, width-70, height-348+38+10, 60, 38, 0, false);
-  savePallet = new Button(true, Isave, true, width-135, height-160, 60, 38, false);
-
-  s=new Slider((width/2)-250, height-30, 500, 20);
+  s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
   s.scale = 0.125;
   loadPallet("colors.csv");
   //default Text in Text-Boxes
@@ -82,7 +82,6 @@ void setup() {
 }
 
 void draw() {
-  println("GUIScale weiter implementieren!");
   background(17);
   imageMode(CENTER);
 
@@ -114,10 +113,10 @@ void draw() {
   //writes the text
   fill(255);
   textSize(24*GUIScaleW);
-  text("Save Pallet as:", width-210, height-160-15-36+5);
-  text("Import Image named: (+.png/.jpg)", 5, 35);
-  text("Save Image as:", 5, 216+5);
-  text("Import Color-Pallet named: (+.csv/.png/.jpg)", 5, 355);
+  text("Save Pallet as:", width-int(GUIScaleW*210), height-int(GUIScaleH*(205)));
+  text("Import Image named: (+.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*35));
+  text("Save Image as:", int(GUIScaleW*5), int(GUIScaleH*216+5));
+  text("Import Color-Pallet named: (+.csv/.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*355));
 
   //displays all Text-Boyes, buttons and sliders
   box.display();
@@ -144,7 +143,7 @@ void draw() {
 
   //writes the Debug/Info-Text in the bottom left corner and the progress of the match-thread
   fill(color(0, 255, 0));
-  text(loading, 5, height-30);
+  text(loading, 5, height-int(GUIScaleW*30));
   fill(DebugC);
   text(GUIDebug, 5, height-10);
 
@@ -193,7 +192,7 @@ void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of 
         Pallet.colors[z].green = row.getInt("green");
         z++;
       }
-      Pallet = new ColorPallet(Pallet.colors, 0, height-80, width, 30, false);
+      Pallet = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
       println("Pallet successfully loaded: "+s);
       GUIDebug = "Successfully loaded Pallet: "+s;
       DebugC = color(0, 255, 0);

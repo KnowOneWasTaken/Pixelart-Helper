@@ -93,7 +93,11 @@ class ColorPallet {
   void deleteColor(int z) {
     Color[] cl = colors;
     color[] pl = pallet;
+    if(pallet.length > 0) {
     colors = new Color[pallet.length-1];
+    } else {
+     colors = new Color[0]; 
+    }
     pallet = new color[colors.length];
     for (int i = 0; i < pallet.length; i++) {
       if (i>=z) {
