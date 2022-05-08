@@ -96,6 +96,16 @@ void setup() {
   b_Filter = new Button(true, I_on_Filter, I_off_Filter, false, int(GUIScaleW*1720), int(GUIScaleH*10), int(GUIScaleW * 60), int(GUIScaleH * 38), 1, false);
   b_Edit = new Button(true, I_on_Edit, I_off_Edit, false, int(GUIScaleW*1840), int(GUIScaleH*10), int(GUIScaleW * 60), int(GUIScaleH * 38), 1, false);
 
+  b_Relief = new Button(true, I_Relief, false, int(GUIScaleW*1730), int(GUIScaleH*58), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Sharpen = new Button(true, I_Sharpen, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Black_And_White = new Button(true, I_BlackAndWhite, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Edges = new Button(true, I_Edges, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Blur = new Button(true, I_Blur, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*4)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  
+  b_Rotate = new Button(true, I_Rotate, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Mirror_v = new Button(true, I_Mirror_v, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Mirror_h = new Button(true, I_Mirror_h, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+
   //b_m_image = new Button();
   //box = new Textbox(5, 40, 200, 30);
   //saveBox = new Textbox(5, 176+50, 200, 30);
@@ -174,8 +184,16 @@ void draw() {
     b_Filter.show2();
     b_Edit.show2();
     if (isFilter) {
+      b_Relief.show2();
+      b_Sharpen.show2();
+      b_Black_And_White.show2();
+      b_Edges.show2();
+      b_Blur.show2();
     }
     if (isEdit) {
+      b_Rotate.show2();
+      b_Mirror_v.show2();
+      b_Mirror_h.show2();
     }
   }
   if (layer == 1) {
@@ -574,24 +592,24 @@ void mouseReleased() {
     if (b_Change.touch() && mouseButton == LEFT) {
       //[ni]
     }
-    
-    if(b_Filter.touch() && mouseButton == LEFT) {
-       b_Filter.pictureChange();
-       isFilter = !isFilter;
-       if(isFilter) {
-         //hitbox of subordinated buttons on [ni]
-       } else {
-         //hitbox of subordinated buttons off [ni]
-       }
+
+    if (b_Filter.touch() && mouseButton == LEFT) {
+      b_Filter.pictureChange();
+      isFilter = !isFilter;
+      if (isFilter) {
+        //hitbox of subordinated buttons on [ni]
+      } else {
+        //hitbox of subordinated buttons off [ni]
+      }
     }
-    if(b_Edit.touch() && mouseButton == LEFT) {
-       b_Edit.pictureChange();
-       isEdit = !isEdit;
-       if(isEdit) {
-         //hitbox of subordinated buttons on [ni]
-       } else {
-         //hitbox of subordinated buttons off [ni]
-       }
+    if (b_Edit.touch() && mouseButton == LEFT) {
+      b_Edit.pictureChange();
+      isEdit = !isEdit;
+      if (isEdit) {
+        //hitbox of subordinated buttons on [ni]
+      } else {
+        //hitbox of subordinated buttons off [ni]
+      }
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
