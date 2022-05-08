@@ -101,7 +101,7 @@ void setup() {
   b_Black_And_White = new Button(true, I_BlackAndWhite, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Edges = new Button(true, I_Edges, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Blur = new Button(true, I_Blur, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*4)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  
+
   b_Rotate = new Button(true, I_Rotate, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Mirror_v = new Button(true, I_Mirror_v, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Mirror_h = new Button(true, I_Mirror_h, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), false);
@@ -202,32 +202,7 @@ void draw() {
   }
   if (layer == 2) {
   }
-  //writes the text
-  //fill(255);
-  //textSize(24*GUIScaleW);
-  //text("Save Pallet as:", width-int(GUIScaleW*210), height-int(GUIScaleH*(205)));
-  //text("Import Image named: (+.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*35));
-  //text("Save Image as:", int(GUIScaleW*5), int(GUIScaleH*216+5));
-  //text("Import Color-Pallet named: (+.csv/.png/.jpg)", int(GUIScaleW*5), int(GUIScaleH*355));
-
-  //displays all Text-Boyes, buttons and sliders
-  //box.display();
-  //saveBox.display();
-  //palletBox.display();
-  //palletSave.display();
-
-  //submit.show2();
-  //submit2.show2();
-  //match.show2();
-  //save.show2();
   s.show();
-  //previous.show2();
-  //loadImgPallet.show2();
-  //pmMode.show2();
-  //gridMode.show2();
-  //pickColor.show2();
-  //clearPallet.show2();
-  //savePallet.show2();
 
   //displays the color-pallet
   Pallet.display();
@@ -423,33 +398,6 @@ void mouseWheel(MouseEvent event) {
 }
 
 void mouseClicked() {
-  //(if Button is pressed) tries to load an Image and sends Error-message when it fails
-  //if (submit.touch()&&mouseButton==LEFT) {
-  //  try {
-  //    image = loadImage(box.Text);
-  //    DebugC = color(0, 255, 0);
-  //    GUIDebug = "Successfully loaded Picture named: " + box.Text;
-  //    println("Picture successfully loaded: "+box.Text);
-  //  }
-  //  catch(Exception e) {
-  //    println("mouseReleased-Function 1: "+e);
-  //    DebugC = color(255, 0, 0);
-  //    GUIDebug = "Invalid name or file not found: " + box.Text;
-  //  }
-  //}
-
-  ////(if Button is pressed) starts a thread to Match the colos of an Image with a pallet
-  //if (match.touch()&&mouseButton==LEFT) {
-  //  thread("matchP");
-  //}
-
-  ////(if Button is pressed) saves the current Image in /saved Images/ with the name in the Textbox (as .png)
-  //if (save.touch()&&mouseButton==LEFT) {
-  //  image.save("saved Images/"+saveBox.Text+".png");
-  //  DebugC = color(0, 255, 0);
-  //  GUIDebug = "Successfully stored Picture as: "+saveBox.Text+".png"+ " | in PictureColorMatcher/saved Images";
-  //  println("Picture successfully saved: "+saveBox.Text+".png" + " | in PictureColorMatcher/saved Images");
-  //}
 
   ////(if Button is pressed) loads the pallet of the current image
   //if (loadImgPallet.touch()&&mouseButton==LEFT) {
@@ -535,6 +483,9 @@ void mouseReleased() {
     tf_Save.txtBox.replaceText(Save_box_0);
     tf_Import.text = Import_0;
     tf_Save.text = Save_0;
+    setHitbox(1, false);
+    setHitbox(0, true);
+    setHitbox(2, false);
   }
   if (b_m_Pallet.touch() && mouseButton == LEFT) {
     layer = 1;
@@ -548,6 +499,9 @@ void mouseReleased() {
     tf_Save.txtBox.replaceText(Save_box_1);
     tf_Import.text = Import_1;
     tf_Save.text = Save_1;
+    setHitbox(0, false);
+    setHitbox(1, true);
+    setHitbox(2, false);
   }
   if (b_m_Rendering.touch() && mouseButton == LEFT) {
     layer = 2;
@@ -557,6 +511,9 @@ void mouseReleased() {
     tf_Change.txtBox.isSelected = false;
     tf_Save.txtBox.isSelected = false;
     tf_Import.txtBox.isSelected = false;
+    setHitbox(0, false);
+    setHitbox(1, false);
+    setHitbox(2, true);
   }
 
   if (layer == 0) {//[Button pressed layer 0]
@@ -597,18 +554,34 @@ void mouseReleased() {
       b_Filter.pictureChange();
       isFilter = !isFilter;
       if (isFilter) {
-        //hitbox of subordinated buttons on [ni]
+        //hitbox of subordinated buttons on
+        b_Relief.setHitbox(true);
+        b_Sharpen.setHitbox(true);
+        b_Black_And_White.setHitbox(true);
+        b_Edges.setHitbox(true);
+        b_Blur.setHitbox(true);
       } else {
-        //hitbox of subordinated buttons off [ni]
+        //hitbox of subordinated buttons off
+        b_Relief.setHitbox(false);
+        b_Sharpen.setHitbox(false);
+        b_Black_And_White.setHitbox(false);
+        b_Edges.setHitbox(false);
+        b_Blur.setHitbox(false);
       }
     }
     if (b_Edit.touch() && mouseButton == LEFT) {
       b_Edit.pictureChange();
       isEdit = !isEdit;
       if (isEdit) {
-        //hitbox of subordinated buttons on [ni]
+        //hitbox of subordinated buttons on
+        b_Rotate.setHitbox(true);
+        b_Mirror_v.setHitbox(true);
+        b_Mirror_h.setHitbox(true);
       } else {
-        //hitbox of subordinated buttons off [ni]
+        //hitbox of subordinated buttons off
+        b_Rotate.setHitbox(false);
+        b_Mirror_v.setHitbox(false);
+        b_Mirror_h.setHitbox(false);
       }
     }
   }
@@ -731,4 +704,32 @@ void loadImages() {
   I_SortColors = loadImage("Buttons/SortColors.png");
   I_Switch = loadImage("Buttons/Switch.png");
   I_Change = loadImage("Buttons/Change.png");
+}
+
+void setHitbox(int lay, boolean b) {
+  if (lay == 0) {
+    b_Relief.setHitbox(b);
+    b_Sharpen.setHitbox(b);
+    b_Black_And_White.setHitbox(b);
+    b_Edges.setHitbox(b);
+    b_Blur.setHitbox(b);
+
+    b_Rotate.setHitbox(b);
+    b_Mirror_v.setHitbox(b);
+    b_Mirror_h.setHitbox(b);
+
+    b_Filter.setHitbox(b);
+    b_Edit.setHitbox(b);
+
+    b_Match.setHitbox(b);
+    b_Change.setHitbox(b);
+    b_Save.setHitbox(b);
+    b_Import.setHitbox(b);
+  }
+  if (lay == 1) {
+    //[ni]
+  }
+  if (lay == 2) {
+    //[ni]
+  }
 }
