@@ -16,18 +16,22 @@ class TextField {
     this.y = y;
     this.w = w;
     this.h = h;
-    txtBox = new Textbox(x, y+w/2, w, h/2);
+    txtBox = new Textbox(x, y+h/2, w, h/2);
     txtBox.replaceText(box_text);
   }
 
   void display() {
     textSize(h/2.5);
     fill(255);
-    text(text, x, y+h/2);
+    text(text, x, y+h/2-h/12);
     txtBox.display();
   }
 
   void replaceText(String s) {
     txtBox.replaceText(s);
+  }
+  
+  void pressed(int mX, int mY) {
+     txtBox.pressed(mX,mY); 
   }
 }

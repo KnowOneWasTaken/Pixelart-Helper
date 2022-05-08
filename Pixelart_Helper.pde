@@ -8,30 +8,41 @@
 
 /*
 To do:
--import new Images
--initilize new buttons and TextFields
--maybe do a GUI_Layer class
-
-List of Buttons:
-Menue: b_Image (switch), b_Pallet (switch), b_Rendering (switch)
-  Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch)
-         Filter: b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur
-         Edit: b_Rotate, b_Mirror_h, b_Mirror_v
-  Pallet: b_Import (again), b_load_img-pallet, b_Save1 (again), b_Clear_Pallet, b_Sort_Colors, b_Pick_Color (switch), b_Switch
-  Rendering: b_Grid (switch), b_Pixel_Mode (switch), b_RGB_Mode (switch), b_XY_Mode (switch)
-
-List of TextFields:
-   Image: tf_Import, tf_Save, tf_Change
-   Pallet: tf_Import (again), tf_Save (again)
-
-*/
+ -import new Images
+ -initilize new buttons and TextFields
+ -maybe do a GUI_Layer class
+ 
+ List of Buttons:
+ Menue: b_Image (switch), b_Pallet (switch), b_Rendering (switch)
+ Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch)
+ Filter: b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur
+ Edit: b_Rotate, b_Mirror_h, b_Mirror_v
+ Pallet: b_Import (again), b_load_img_pallet, b_Save1 (again), b_Clear_Pallet, b_Sort_Colors, b_Pick_Color (switch), b_Switch
+ Rendering: b_Grid (switch), b_Pixel_Mode (switch), b_RGB_Mode (switch), b_XY_Mode (switch)
+ 
+ List of TextFields:
+ Image: tf_Import, tf_Save, tf_Change
+ Pallet: tf_Import (again), tf_Save (again)
+ 
+ */
 PImage image = new PImage();
 Table colorTable = new Table();
 ColorPicture pixelArray;
-Textbox box, saveBox, palletBox, palletSave;
-Button b_m_Image, b_m_Pallet, b_m_Rendering;
+//Textbox box, saveBox, palletBox, palletSave;
+Button b_m_Image, b_m_Pallet, b_m_Rendering; //menue Buttons
+Button b_Import, b_Match, b_Save, b_Change, b_Filter, b_Edit; //Buttons for Image-Layer
+Button b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur; //Button for Filters in Image-Layer
+Button b_Rotate, b_Mirror_h, b_Mirror_v; //Buttons for Edit in Image-Layer
+Button b_load_img_pallet, b_Clear_Pallet, b_Sort_Colors, b_Pick_Color, b_Switch; //Buttons for Pallet-Layer
+Button b_Grid, b_Pixel_Mode, b_RGM_Mode, b_XY_Mode; //Buttons for Rendering-Layer
+
+int layer = 0; //int for the shown GUI-Layer: 0 = Image; 1 = Pallet; 2 = Rendering
+
+TextField tf_Import, tf_Save, tf_Change;
 //Button submit, match, save, submit2, loadImgPallet, previous, pmMode, gridMode, clearPallet, pickColor, savePallet;
-PImage Isubmit, Imatch, Isave, ImgPallet, Iprevious, Itemp, ItempScale, Ion_PM, Ioff_PM, Ion_Grid, Ioff_Grid, IclearPallet, Ioff_pickColor, Ion_pickColor;
+PImage Itemp, ItempScale;
+PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_PickColor, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_PickColor, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY;
+PImage I_BlackAndWhite, I_Blur, I_ClearPallet, I_Edges, I_ImgPallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_SortColors, I_Import, I_Switch, I_Change;
 String GUIDebug = "";
 color DebugC = color(0, 255, 0);
 ColorPallet Pallet = new ColorPallet();
@@ -42,9 +53,18 @@ PVector ofset = new PVector(0, 0);
 PVector ofsetTemp = new PVector(0, 0);
 PVector startOfset = new PVector(0, 0);
 float tempScale; //saves the scale (zoom) of the frame for the next frame: if image and scale are the same, the image of the last frame in pixelMode can be used and does not have to be processed again
-boolean isPixelMode = true, isGrid = true, isColorPicking = false;
+boolean isPixelMode = true, isGrid = true, isColorPicking = false, isFilter = true, isEdit = true;
 float GUIScaleW, GUIScaleH;
-
+String Import_0 = "Import Image named: (+.png/.jpg)";
+String Save_0 = "Save Image as";
+String Change_0 = "Change Size (x;y)";
+String Import_1 = "Import Color-Pallet named: (+.csv/.png/.jpg)";
+String Save_1 = "Save Pallet as";
+String Import_box_0 = "pixelart1.png";
+String Save_box_0 = "save";
+String Change_box_0 = "100;200";
+String Import_box_1 = "colors.csv";
+String Save_box_1 = "user-pallet";
 
 void setup() {
   //size(720, 480);
@@ -54,22 +74,28 @@ void setup() {
   surface.setResizable(false);
   surface.setLocation(0, 0);
   image = createImage(10, 10, RGB);
-  Isave = loadImage("Buttons/Save.png");
-  Isubmit = loadImage("Buttons/Submit.png");
-  Imatch = loadImage("Buttons/Match.png");
-  ImgPallet = loadImage("Buttons/ImgPallet.png");
-  Iprevious = loadImage("Buttons/Previous.png");
-  Ion_PM = loadImage("Buttons/on_PM.png");
-  Ioff_PM = loadImage("Buttons/off_PM.png");
-  Ion_Grid = loadImage("Buttons/on_Grid.png");
-  Ioff_Grid = loadImage("Buttons/off_Grid.png");
-  IclearPallet = loadImage("Buttons/clearPallet.png");
-  Ioff_pickColor = loadImage("Buttons/off_pickColor.png");
-  Ion_pickColor = loadImage("Buttons/on_pickColor.png");
+  loadImages(); //loads all necessary Images
 
   GUIScaleW = width/1920f;
   GUIScaleH = height/1080f;
-  
+
+  b_m_Image = new Button(true, I_on_Image, I_off_Image, false, int(GUIScaleW*10), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), 1, false);
+  b_m_Pallet = new Button(true, I_on_Pallet, I_off_Pallet, false, int(GUIScaleW*120), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), 2, false);
+  b_m_Rendering = new Button(true, I_on_Rendering, I_off_Rendering, false, int(GUIScaleW*230), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), 2, false);
+
+  tf_Import = new TextField(Import_0, int(GUIScaleW*20), int(GUIScaleH*50), int(GUIScaleW*200), int(GUIScaleH*60), Import_box_0);
+  tf_Save = new TextField(Save_0, int(GUIScaleW*20), int(GUIScaleH*236), int(GUIScaleW*200), int(GUIScaleH*60), Save_box_0);
+  tf_Change = new TextField(Change_0, int(GUIScaleW*20), int(GUIScaleH*355), int(GUIScaleW*200), int(GUIScaleH*60), Change_box_0);
+
+  //Image-Layer
+  b_Import = new Button(true, I_Import, false, int(GUIScaleW*88), int(GUIScaleH*120), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Match = new Button(true, I_Match, false, int(GUIScaleW*88), int(GUIScaleH*168), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Save = new Button(true, I_Save, false, int(GUIScaleW*88), int(GUIScaleH*306), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Change = new Button(true, I_Change, false, int(GUIScaleW*88), int(GUIScaleH*425), int(GUIScaleW*60), int(GUIScaleH*38), false);
+
+  b_Filter = new Button(true, I_on_Filter, I_off_Filter, false, int(GUIScaleW*1720), int(GUIScaleH*10), int(GUIScaleW * 60), int(GUIScaleH * 38), 1, false);
+  b_Edit = new Button(true, I_on_Edit, I_off_Edit, false, int(GUIScaleW*1840), int(GUIScaleH*10), int(GUIScaleW * 60), int(GUIScaleH * 38), 1, false);
+
   //b_m_image = new Button();
   //box = new Textbox(5, 40, 200, 30);
   //saveBox = new Textbox(5, 176+50, 200, 30);
@@ -127,11 +153,37 @@ void draw() {
   catch(Exception e) {
     println("Draw-Function: "+e);
     DebugC = color(255, 0, 0);
-    GUIDebug = "Invalid name or file not found: " + box.Text;
+    //GUIDebug = "Invalid name or file not found: " + box.Text;
     image = createImage(10, 10, RGB);
   }
   imageMode(CORNER);
+  //Menue
+  b_m_Image.show2();
+  b_m_Pallet.show2();
+  b_m_Rendering.show2();
 
+  //Layers
+  if (layer == 0) { //[layer draw]
+    tf_Import.display();
+    tf_Save.display();
+    tf_Change.display();
+    b_Import.show2();
+    b_Match.show2();
+    b_Save.show2();
+    b_Change.show2();
+    b_Filter.show2();
+    b_Edit.show2();
+    if (isFilter) {
+    }
+    if (isEdit) {
+    }
+  }
+  if (layer == 1) {
+    tf_Import.display();
+    tf_Save.display();
+  }
+  if (layer == 2) {
+  }
   //writes the text
   //fill(255);
   //textSize(24*GUIScaleW);
@@ -301,7 +353,13 @@ void mousePressed() {
   //saveBox.pressed(mouseX, mouseY);
   //palletBox.pressed(mouseX, mouseY);
   //palletSave.pressed(mouseX, mouseY);
-
+  if (layer == 1 || layer == 0) {
+    tf_Import.pressed(mouseX, mouseY);
+    tf_Save.pressed(mouseX, mouseY);
+    if (layer == 0) {
+      tf_Change.pressed(mouseX, mouseY);
+    }
+  }
   s.Pressed();
 
   //every frame the mouse is pressed, the coordinates of the mouse get stored to calculate the offset while grabbing
@@ -313,6 +371,9 @@ void keyPressed() {
   //saveBox.KeyPressed(key, keyCode);
   //palletBox.KeyPressed(key, keyCode);
   //palletSave.KeyPressed(key, keyCode);
+  tf_Import.txtBox.KeyPressed(key, keyCode);
+  tf_Save.txtBox.KeyPressed(key, keyCode);
+  tf_Change.txtBox.KeyPressed(key, keyCode);
   startOfset = new PVector(mouseX, mouseY);
   if (key == DELETE) {
     if (Pallet.isOneColorSelected) {
@@ -326,7 +387,7 @@ void mouseDragged() {
 
   //every frame the mouse gets dragged, a temporary offset gets calculated to add it to offset after mouse gets released
   //if (s.selected == false && submit.touch() == false && submit2.touch() == false && match.touch() == false) {
-    if (s.selected == false) {
+  if (s.selected == false) {
     ofsetTemp = new PVector((mouseX-startOfset.x), (mouseY-startOfset.y));
   }
 }
@@ -344,7 +405,6 @@ void mouseWheel(MouseEvent event) {
 }
 
 void mouseClicked() {
-
   //(if Button is pressed) tries to load an Image and sends Error-message when it fails
   //if (submit.touch()&&mouseButton==LEFT) {
   //  try {
@@ -444,6 +504,100 @@ void mouseReleased() {
   }
   Pallet.calculateColorPicked(mouseX, mouseY);
   s.Released();
+
+  if (b_m_Image.touch() && mouseButton == LEFT) { //[layer switch]
+    layer = 0;
+    b_m_Image.setPicture(1);
+    b_m_Pallet.setPicture(2);
+    b_m_Rendering.setPicture(2);
+    tf_Change.txtBox.isSelected = false;
+    tf_Save.txtBox.isSelected = false;
+    tf_Import.txtBox.isSelected = false;
+    tf_Import.txtBox.replaceText(Import_box_0);
+    tf_Save.txtBox.replaceText(Save_box_0);
+    tf_Import.text = Import_0;
+    tf_Save.text = Save_0;
+  }
+  if (b_m_Pallet.touch() && mouseButton == LEFT) {
+    layer = 1;
+    b_m_Image.setPicture(2);
+    b_m_Pallet.setPicture(1);
+    b_m_Rendering.setPicture(2);
+    tf_Change.txtBox.isSelected = false;
+    tf_Save.txtBox.isSelected = false;
+    tf_Import.txtBox.isSelected = false;
+    tf_Import.txtBox.replaceText(Import_box_1);
+    tf_Save.txtBox.replaceText(Save_box_1);
+    tf_Import.text = Import_1;
+    tf_Save.text = Save_1;
+  }
+  if (b_m_Rendering.touch() && mouseButton == LEFT) {
+    layer = 2;
+    b_m_Image.setPicture(2);
+    b_m_Pallet.setPicture(2);
+    b_m_Rendering.setPicture(1);
+    tf_Change.txtBox.isSelected = false;
+    tf_Save.txtBox.isSelected = false;
+    tf_Import.txtBox.isSelected = false;
+  }
+
+  if (layer == 0) {//[Button pressed layer 0]
+
+    if (b_Import.touch() && mouseButton == LEFT) {
+      try {
+        image = loadImage(tf_Import.txtBox.Text);
+        DebugC = color(0, 255, 0);
+        GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
+        println("Picture successfully loaded: "+tf_Import.txtBox.Text);
+      }
+      catch(Exception e) {
+        println("mouseReleased-Function 1: "+e);
+        DebugC = color(255, 0, 0);
+        GUIDebug = "Invalid name or file not found: " + tf_Import.txtBox.Text;
+      }
+    }
+
+
+    if (b_Match.touch()&&mouseButton==LEFT) {
+      thread("matchP");
+    }
+
+
+    if (b_Save.touch()&&mouseButton==LEFT) {
+      image.save("saved Images/"+tf_Save.txtBox.Text+".png");
+      DebugC = color(0, 255, 0);
+      GUIDebug = "Successfully stored Picture as: "+tf_Save.txtBox.Text+".png";
+      println("Picture successfully saved: "+tf_Save.txtBox.Text+".png");
+    }
+
+
+    if (b_Change.touch() && mouseButton == LEFT) {
+      //[ni]
+    }
+    
+    if(b_Filter.touch() && mouseButton == LEFT) {
+       b_Filter.pictureChange();
+       isFilter = !isFilter;
+       if(isFilter) {
+         //hitbox of subordinated buttons on [ni]
+       } else {
+         //hitbox of subordinated buttons off [ni]
+       }
+    }
+    if(b_Edit.touch() && mouseButton == LEFT) {
+       b_Edit.pictureChange();
+       isEdit = !isEdit;
+       if(isEdit) {
+         //hitbox of subordinated buttons on [ni]
+       } else {
+         //hitbox of subordinated buttons off [ni]
+       }
+    }
+  }
+  if (layer == 1) {//[Button pressed layer 1] [ni]
+  }
+  if (layer == 2) {//[Button pressed layer 2] [ni]
+  }
 }
 
 //creates a Color-Pallet with an Image, saves it in "color pallets/image-pallet.csv" and then loads it
@@ -518,4 +672,45 @@ void drawSharpImage(PImage img, float x, float y, float w, float h) {
       line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
     }
   }
+}
+
+void loadImages() {
+  I_off_Edit = loadImage("Buttons/off_Edit.png");
+  I_off_Filter = loadImage("Buttons/off_Filter.png");
+  I_off_Grid = loadImage("Buttons/off_Grid.png");
+  I_off_Image = loadImage("Buttons/off_Image.png");
+  I_off_PickColor = loadImage("Buttons/off_PickColor.png");
+  I_off_PixelMode = loadImage("Buttons/off_PixelMode.png");
+  I_off_Rendering = loadImage("Buttons/off_Rendering.png");
+  I_off_RGB = loadImage("Buttons/off_RGB.png");
+  I_off_XY = loadImage("Buttons/off_XY.png");
+  I_off_Pallet = loadImage("Buttons/off_Pallet.png");
+
+  I_on_Edit = loadImage("Buttons/on_Edit.png");
+  I_on_Filter = loadImage("Buttons/on_Filter.png");
+  I_on_Grid = loadImage("Buttons/on_Grid.png");
+  I_on_Image = loadImage("Buttons/on_Image.png");
+  I_on_PickColor = loadImage("Buttons/on_PickColor.png");
+  I_on_PixelMode = loadImage("Buttons/on_PixelMode.png");
+  I_on_Rendering = loadImage("Buttons/on_Rendering.png");
+  I_on_RGB = loadImage("Buttons/on_RGB.png");
+  I_on_XY = loadImage("Buttons/on_XY.png");
+  I_on_Pallet = loadImage("Buttons/on_Pallet.png");
+
+  I_BlackAndWhite = loadImage("Buttons/BlackAndWhite.png");
+  I_Blur = loadImage("Buttons/Blur.png");
+  I_ClearPallet = loadImage("Buttons/ClearPallet.png");
+  I_Edges = loadImage("Buttons/Edges.png");
+  I_ImgPallet = loadImage("Buttons/ImgPallet.png");
+  I_Import = loadImage("Buttons/Import.png");
+  I_Match = loadImage("Buttons/Match.png");
+  I_Mirror_h = loadImage("Buttons/Mirror_h.png");
+  I_Mirror_v = loadImage("Buttons/Mirror_v.png");
+  I_Relief = loadImage("Buttons/Relief.png");
+  I_Rotate = loadImage("Buttons/Rotate.png");
+  I_Save = loadImage("Buttons/Save.png");
+  I_Sharpen = loadImage("Buttons/Sharpen.png");
+  I_SortColors = loadImage("Buttons/SortColors.png");
+  I_Switch = loadImage("Buttons/Switch.png");
+  I_Change = loadImage("Buttons/Change.png");
 }
