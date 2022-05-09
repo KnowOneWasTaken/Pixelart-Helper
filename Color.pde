@@ -16,6 +16,10 @@ class Color { //Class with 3 integer values that describe red, green and blue of
     maxMin();
   }
 
+  color getColor() {
+    return color(red, green, blue, RGB);
+  }
+
   private void maxMin() { //sets the RGB-values in the RGB-range, if they are higher than 255 or lower than 0
     if (red > 255) {
       red = 255;
