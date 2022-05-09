@@ -33,16 +33,16 @@ Button b_m_Image, b_m_Pallet, b_m_Rendering; //menue Buttons
 Button b_Import, b_Match, b_Save, b_Change, b_Filter, b_Edit; //Buttons for Image-Layer
 Button b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur; //Button for Filters in Image-Layer
 Button b_Rotate, b_Mirror_h, b_Mirror_v; //Buttons for Edit in Image-Layer
-Button b_load_img_pallet, b_Clear_Pallet, b_Sort_Colors, b_Pick_Color, b_Switch; //Buttons for Pallet-Layer
-Button b_Grid, b_Pixel_Mode, b_RGM_Mode, b_XY_Mode; //Buttons for Rendering-Layer
+Button b_Img_Pallet, b_Clear_Pallet, b_Sort_Colors, b_Pick_Color, b_Switch; //Buttons for Pallet-Layer
+Button b_Grid, b_Pixel_Mode, b_RGB, b_XY; //Buttons for Rendering-Layer
 
 int layer = 0; //int for the shown GUI-Layer: 0 = Image; 1 = Pallet; 2 = Rendering
 
 TextField tf_Import, tf_Save, tf_Change;
 //Button submit, match, save, submit2, loadImgPallet, previous, pmMode, gridMode, clearPallet, pickColor, savePallet;
 PImage Itemp, ItempScale;
-PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_PickColor, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_PickColor, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY;
-PImage I_BlackAndWhite, I_Blur, I_ClearPallet, I_Edges, I_ImgPallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_SortColors, I_Import, I_Switch, I_Change;
+PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_Pick_Color, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_Pick_Color, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY;
+PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change;
 String GUIDebug = "";
 color DebugC = color(0, 255, 0);
 ColorPallet Pallet = new ColorPallet();
@@ -53,7 +53,7 @@ PVector ofset = new PVector(0, 0);
 PVector ofsetTemp = new PVector(0, 0);
 PVector startOfset = new PVector(0, 0);
 float tempScale; //saves the scale (zoom) of the frame for the next frame: if image and scale are the same, the image of the last frame in pixelMode can be used and does not have to be processed again
-boolean isPixelMode = true, isGrid = true, isColorPicking = false, isFilter = true, isEdit = true;
+boolean isPixelMode = true, isGrid = false, isColorPicking = false, isFilter = true, isEdit = true, isRGB = false, isXY = false;
 float GUIScaleW, GUIScaleH;
 String Import_0 = "Import Image named: (+.png/.jpg)";
 String Save_0 = "Save Image as";
@@ -62,7 +62,7 @@ String Import_1 = "Import Color-Pallet named: (+.csv/.png/.jpg)";
 String Save_1 = "Save Pallet as";
 String Import_box_0 = "pixelart1.png";
 String Save_box_0 = "save";
-String Change_box_0 = "100;200";
+String Change_box_0 = "64;64";
 String Import_box_1 = "colors.csv";
 String Save_box_1 = "user-pallet";
 
@@ -106,37 +106,22 @@ void setup() {
   b_Mirror_v = new Button(true, I_Mirror_v, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Mirror_h = new Button(true, I_Mirror_h, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
-  //b_m_image = new Button();
-  //box = new Textbox(5, 40, 200, 30);
-  //saveBox = new Textbox(5, 176+50, 200, 30);
-  //palletBox = new Textbox(5, 260+100, 200, 30);
-  //palletSave = new Textbox(width-200-10, height-200, 200, 30);
+  //Pallet Layer
+  b_Img_Pallet = new Button(true, I_Img_Pallet, false, int(GUIScaleW*58), int(GUIScaleH*(168)), int(GUIScaleW*120), int(GUIScaleH*38), false);
+  b_Clear_Pallet = new Button(true, I_Clear_Pallet, false, int(GUIScaleW*(20+75*0)), int(GUIScaleH*(363+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Sort_Colors = new Button(true, I_Sort_Colors, false, int(GUIScaleW*(20+75*1)), int(GUIScaleH*(363+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Pick_Color = new Button(true, I_on_Pick_Color, I_off_Pick_Color, false, int(GUIScaleW*(20+75*2)), int(GUIScaleH*(363+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), 2, false);
+  b_Switch = new Button(true, I_Switch, false, int(GUIScaleW*(20+75*0)), int(GUIScaleH*(363+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
-  //box = new Textbox(int(5*GUIScaleW), int(GUIScaleH*40), int(GUIScaleW*200), int(GUIScaleH*30));
-  //saveBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*(176+50)), int(GUIScaleW*200), int(GUIScaleH*30));
-  //palletBox = new Textbox(int(GUIScaleW*5), int(GUIScaleH*360), int(GUIScaleW*200), int(GUIScaleH*30));
-  //palletSave = new Textbox(width+int(GUIScaleW*(-210)), height+int(GUIScaleH*(-200)), int(GUIScaleW*200), int(GUIScaleH*30));
-  ////GUIScale wrong implemented: only numbers with GUI und nicht width/height
-  //submit = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*80), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  //submit2 = new Button(true, Isubmit, true, int(GUIScaleW*73), int(GUIScaleH*(300+100)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  //match = new Button(true, Imatch, true, int(GUIScaleW*73), int(GUIScaleH*128), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  //save = new Button(true, Isave, true, int(GUIScaleW*73), int(GUIScaleH*(216+50)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  //pmMode = new Button(true, Ion_PM, Ioff_PM, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*10), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
-  //loadImgPallet = new Button(true, ImgPallet, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
-  //previous = new Button(true, Iprevious, true, int(GUIScaleW*(73-30)), int(GUIScaleH*(400+38+10+38+10)), int(GUIScaleW*120), int(GUIScaleH*38), false);
-  //gridMode = new Button(true, Ion_Grid, Ioff_Grid, true, width+int(GUIScaleW*(-70)), int(GUIScaleH*(10+38+10)), int(GUIScaleW* 60), int(GUIScaleH*38), 0, false);
-  //clearPallet = new Button(true, IclearPallet, true, width+int(GUIScaleW*(-60-10)), height+int(GUIScaleH*(-348)), int(GUIScaleW*60), int(GUIScaleH*38), false);
-  //pickColor = new Button(true, Ioff_pickColor, Ion_pickColor, true, int(width-GUIScaleW*(70)), int((height+GUIScaleH*(-348+38+10))), int(GUIScaleW*60), int(GUIScaleH*38), 0, false);
-  //savePallet = new Button(true, Isave, true, width+int(GUIScaleW*(-135)), height+int(GUIScaleH*(-160)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  //Rendering Layer
+  b_Grid = new Button(true, I_on_Grid, I_off_Grid, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), 2, false);
+  b_Pixel_Mode = new Button(true, I_on_PixelMode, I_off_PixelMode, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), 1, false);
+  b_RGB = new Button(true, I_on_RGB, I_off_RGB, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), 2, false);
+  b_XY = new Button(true, I_on_XY, I_off_XY, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), 2, false);
 
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
   s.scale = 0.125;
   loadPallet("colors.csv");
-  //default Text in Text-Boxes
-  //box.replaceText("pixelart1.png");
-  //saveBox.replaceText("save");
-  //palletBox.replaceText("colors.csv");
-  //palletSave.replaceText("user-pallet");
 }
 
 void draw() {
@@ -199,8 +184,19 @@ void draw() {
   if (layer == 1) {
     tf_Import.display();
     tf_Save.display();
+    b_Import.show2();
+    b_Save.show2();
+    b_Img_Pallet.show2();
+    b_Clear_Pallet.show2();
+    b_Sort_Colors.show2();
+    b_Pick_Color.show2();
+    b_Switch.show2();
   }
   if (layer == 2) {
+    b_Grid.show2();
+    b_Pixel_Mode.show2();
+    b_RGB.show2();
+    b_XY.show2();
   }
   s.show();
 
@@ -550,42 +546,74 @@ void mouseReleased() {
       //[ni]
     }
 
+
     if (b_Filter.touch() && mouseButton == LEFT) {
       b_Filter.pictureChange();
       isFilter = !isFilter;
       if (isFilter) {
         //hitbox of subordinated buttons on
-        b_Relief.setHitbox(true);
-        b_Sharpen.setHitbox(true);
-        b_Black_And_White.setHitbox(true);
-        b_Edges.setHitbox(true);
-        b_Blur.setHitbox(true);
+        setHitbox(-1, true); //activates hitbox of Buttons subordinated to Filter
       } else {
         //hitbox of subordinated buttons off
-        b_Relief.setHitbox(false);
-        b_Sharpen.setHitbox(false);
-        b_Black_And_White.setHitbox(false);
-        b_Edges.setHitbox(false);
-        b_Blur.setHitbox(false);
+        setHitbox(-1, false);//deactivates hitbox of Buttons subordinated to Filter
       }
     }
+
+
     if (b_Edit.touch() && mouseButton == LEFT) {
       b_Edit.pictureChange();
       isEdit = !isEdit;
       if (isEdit) {
-        //hitbox of subordinated buttons on
-        b_Rotate.setHitbox(true);
-        b_Mirror_v.setHitbox(true);
-        b_Mirror_h.setHitbox(true);
+        //hitbox of subordinated buttons of Edit on
+        setHitbox(-2, true);
       } else {
-        //hitbox of subordinated buttons off
-        b_Rotate.setHitbox(false);
-        b_Mirror_v.setHitbox(false);
-        b_Mirror_h.setHitbox(false);
+        //hitbox of subordinated buttons of Edit off
+        setHitbox(-2, false);
       }
+    }
+
+
+    if (b_Relief.touch() && mouseButton == LEFT) { //[Filter Buttons]
+      //[ni]
+    }
+
+
+    if (b_Sharpen.touch() && mouseButton == LEFT) {
+      //[ni]
+    }
+
+
+    if (b_Black_And_White.touch() && mouseButton == LEFT) {
+      //[ni]
+    }
+
+
+    if (b_Edges.touch() && mouseButton == LEFT) {
+      //[ni]
+    }
+
+    if (b_Blur.touch() && mouseButton == LEFT) {
+      //[ni]
+    }
+
+
+
+    if (b_Rotate.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+    
+    
+    if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+    
+    
+    if (b_Mirror_h.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
+    
   }
   if (layer == 2) {//[Button pressed layer 2] [ni]
   }
@@ -670,7 +698,7 @@ void loadImages() {
   I_off_Filter = loadImage("Buttons/off_Filter.png");
   I_off_Grid = loadImage("Buttons/off_Grid.png");
   I_off_Image = loadImage("Buttons/off_Image.png");
-  I_off_PickColor = loadImage("Buttons/off_PickColor.png");
+  I_off_Pick_Color = loadImage("Buttons/off_PickColor.png");
   I_off_PixelMode = loadImage("Buttons/off_PixelMode.png");
   I_off_Rendering = loadImage("Buttons/off_Rendering.png");
   I_off_RGB = loadImage("Buttons/off_RGB.png");
@@ -681,7 +709,7 @@ void loadImages() {
   I_on_Filter = loadImage("Buttons/on_Filter.png");
   I_on_Grid = loadImage("Buttons/on_Grid.png");
   I_on_Image = loadImage("Buttons/on_Image.png");
-  I_on_PickColor = loadImage("Buttons/on_PickColor.png");
+  I_on_Pick_Color = loadImage("Buttons/on_PickColor.png");
   I_on_PixelMode = loadImage("Buttons/on_PixelMode.png");
   I_on_Rendering = loadImage("Buttons/on_Rendering.png");
   I_on_RGB = loadImage("Buttons/on_RGB.png");
@@ -690,9 +718,9 @@ void loadImages() {
 
   I_BlackAndWhite = loadImage("Buttons/BlackAndWhite.png");
   I_Blur = loadImage("Buttons/Blur.png");
-  I_ClearPallet = loadImage("Buttons/ClearPallet.png");
+  I_Clear_Pallet = loadImage("Buttons/ClearPallet.png");
   I_Edges = loadImage("Buttons/Edges.png");
-  I_ImgPallet = loadImage("Buttons/ImgPallet.png");
+  I_Img_Pallet = loadImage("Buttons/ImgPallet.png");
   I_Import = loadImage("Buttons/Import.png");
   I_Match = loadImage("Buttons/Match.png");
   I_Mirror_h = loadImage("Buttons/Mirror_h.png");
@@ -701,7 +729,7 @@ void loadImages() {
   I_Rotate = loadImage("Buttons/Rotate.png");
   I_Save = loadImage("Buttons/Save.png");
   I_Sharpen = loadImage("Buttons/Sharpen.png");
-  I_SortColors = loadImage("Buttons/SortColors.png");
+  I_Sort_Colors = loadImage("Buttons/SortColors.png");
   I_Switch = loadImage("Buttons/Switch.png");
   I_Change = loadImage("Buttons/Change.png");
 }
@@ -727,9 +755,31 @@ void setHitbox(int lay, boolean b) {
     b_Import.setHitbox(b);
   }
   if (lay == 1) {
-    //[ni]
+    b_Import.setHitbox(b);
+    b_Img_Pallet.setHitbox(b);
+    b_Save.setHitbox(b);
+    b_Clear_Pallet.setHitbox(b);
+    b_Sort_Colors.setHitbox(b);
+    b_Pick_Color.setHitbox(b);
+    b_Switch.setHitbox(b);
   }
   if (lay == 2) {
-    //[ni]
+    b_Grid.setHitbox(b);
+    b_Pixel_Mode.setHitbox(b);
+    b_RGB.setHitbox(b);
+    b_XY.setHitbox(b);
+  }
+
+  if (lay == -1) {//Filter
+    b_Relief.setHitbox(b);
+    b_Sharpen.setHitbox(b);
+    b_Black_And_White.setHitbox(b);
+    b_Edges.setHitbox(b);
+    b_Blur.setHitbox(b);
+  }
+  if (lay == -2) {//Edit
+    b_Rotate.setHitbox(b);
+    b_Mirror_v.setHitbox(b);
+    b_Mirror_h.setHitbox(b);
   }
 }

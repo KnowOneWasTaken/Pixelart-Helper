@@ -25,6 +25,15 @@ public class Textbox {
     this.h = h;
     textSize = int(GUIScaleW*24);
   }
+  
+    Textbox(int x, int y, int w, int h, String s) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    textSize = int(GUIScaleW*24);
+    Text = s;
+  }
 
   void replaceText(String s) {
     Text = s;
@@ -44,9 +53,7 @@ public class Textbox {
     } else {
       noStroke();
     }
-
     rect(x, y, w, h);
-
     fill(fgC);
     textSize(textSize);
     text(Text, x + (textWidth("a") / 2), y + textSize);
@@ -211,9 +218,9 @@ public class Textbox {
     }
   }
 
-  private boolean overBox(int x, int y) {
-    if (x >= x && x <= x + w) {
-      if (y >= y && y <= y + h) {
+  private boolean overBox(int mX, int mY) {
+    if (mX >= x && mX <= x + w) {
+      if (mY >= y && mY <= y + h) {
         return true;
       }
     }
@@ -221,8 +228,8 @@ public class Textbox {
     return false;
   }
 
-  void pressed(int x, int y) {
-    if (overBox(x, y)) {
+  void pressed(int mX, int mY) {
+    if (overBox(mX, mY)) {
       isSelected = true;
     } else {
       isSelected = false;

@@ -16,8 +16,7 @@ class TextField {
     this.y = y;
     this.w = w;
     this.h = h;
-    txtBox = new Textbox(x, y+h/2, w, h/2);
-    txtBox.replaceText(box_text);
+    txtBox = new Textbox(x, y+h/2, w, h/2, box_text);
   }
 
   void display() {
