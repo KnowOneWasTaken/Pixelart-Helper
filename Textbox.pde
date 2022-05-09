@@ -1,4 +1,4 @@
-public class Textbox {
+class Textbox {
   int textSize = 24;
   color bgSC = color(170, 170, 170, 175); //background-Color if selected
   color border = color(30, 30, 30, 175);
@@ -27,17 +27,6 @@ public class Textbox {
   }
 
   Textbox(int x, int y, int w, int h, String s) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    textSize = int(GUIScaleW*24);
-    Text = s;
-  }
-  
-  }
-  
-    Textbox(int x, int y, int w, int h, String s) {
     this.x = x;
     this.y = y;
     this.w = w;

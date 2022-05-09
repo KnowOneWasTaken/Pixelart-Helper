@@ -1,13 +1,10 @@
-/*
+/* //<>//
  Author: Philipp Schröder aka KnowOneWasTaken
  Version: 1.1
  Last time edited: 09.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
- */
-
-/*
-
+ 
  List of Buttons:
  Menue: b_Image (switch), b_Pallet (switch), b_Rendering (switch)
  Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch)
@@ -20,11 +17,10 @@
  Image: tf_Import, tf_Save, tf_Change
  Pallet: tf_Import (again), tf_Save (again)
  
- */
+*/
 PImage image = new PImage();
 Table colorTable = new Table();
 ColorPicture pixelArray;
-//Textbox box, saveBox, palletBox, palletSave;
 Button b_m_Image, b_m_Pallet, b_m_Rendering; //menue Buttons
 Button b_Import, b_Match, b_Save, b_Change, b_Filter, b_Edit; //Buttons for Image-Layer
 Button b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur; //Button for Filters in Image-Layer
@@ -35,7 +31,6 @@ Button b_Grid, b_Pixel_Mode, b_RGB, b_XY; //Buttons for Rendering-Layer
 int layer = 0; //int for the shown GUI-Layer: 0 = Image; 1 = Pallet; 2 = Rendering
 
 TextField tf_Import, tf_Save, tf_Change;
-//Button submit, match, save, submit2, loadImgPallet, previous, pmMode, gridMode, clearPallet, pickColor, savePallet;
 PImage Itemp, ItempScale;
 PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_Pick_Color, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_Pick_Color, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY;
 PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change;
@@ -393,59 +388,6 @@ void mouseWheel(MouseEvent event) {
   if (s.scale<0) {
     s.scale=0;
   }
-}
-
-void mouseClicked() {
-
-  ////(if Button is pressed) loads the pallet of the current image
-  //if (loadImgPallet.touch()&&mouseButton==LEFT) {
-  //  thread("loadPalletWithImage");
-  //  println("Pallet from image successfully loaded");
-  //}
-
-  ////(if Button is pressed) loads the image-pallet.csv file, so if a pallet from a Image gets saved, it can be accesed directly in the next boot
-  //if (previous.touch()&&mouseButton==LEFT) {
-  //  loadPallet("image-pallet.csv");
-  //}
-
-  ////(if Button is pressed) saves the current Pallet (with name of the palletSave-Textbox)
-  //if (savePallet.touch()&&mouseButton==LEFT) {
-  //  savePallet(palletSave.Text, Pallet, image);
-  //}
-
-  ////(if Button is pressed) saves the current pallet
-  //if (submit2.touch()&&mouseButton==LEFT) {
-  //  //not implemented yet [ni]
-  //}
-
-  ////(if Button is pressed) switches between rendering-mode of PixelMode on and off (renders clear and sharp pixel-images if it is on)
-  ////and switches the image of the button (from off to on and vice versa)
-  //if (pmMode.touch()&&mouseButton==LEFT) {
-  //  isPixelMode = !isPixelMode;
-  //  pmMode.pictureChange();
-  //  println("PixelMode activated: "+isPixelMode);
-  //}
-
-  ////(if Button is pressed) switches between rendering-mode of the Grid and switches the Image/state of the button
-  //if (gridMode.touch()&&mouseButton==LEFT) {
-  //  isGrid = !isGrid;
-  //  gridMode.pictureChange();
-  //  println("Grid activated: "+isGrid);
-  //}
-
-  ////(if Button is pressed) switches picture of the button
-  ////isColorPicking is not implemented yet: it should allow the user to pick a color (of a pixel) of the current image and add it to the curtrent pallet
-  ////[ni]
-  //if (pickColor.touch()&&mouseButton==LEFT) {
-  //  isColorPicking = !isColorPicking;
-  //  pickColor.pictureChange();
-  //}
-
-  ////(if Button is pressed) clears/empties the current color-pallet
-  //if (clearPallet.touch()&&mouseButton==LEFT) {
-  //  Pallet.clearPallet();
-  //  println("Pallet cleard!");
-  //}
 }
 
 void mouseReleased() {

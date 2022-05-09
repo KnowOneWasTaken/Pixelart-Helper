@@ -1,6 +1,5 @@
-  class ColorPicture {
+class ColorPicture {
   Color[] pixel = new Color[0];
-  ;
   int pWidth;
   int pHeight;
   int pixelCount;
