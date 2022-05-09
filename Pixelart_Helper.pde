@@ -291,7 +291,6 @@ void savePallet(String s, ColorPallet p, PImage img) {
   }
   saveTable(t, "color pallets/"+s+".csv");
   loading = "";
-  loadPallet("image-pallet.csv");
   DebugC = color(0, 255, 0);
   GUIDebug ="Successfully saved Pallet: "+"color pallets/"+s+".csv";
   println("Successfully saved Pallet: "+"color pallets/"+s+".csv");
@@ -601,21 +600,61 @@ void mouseReleased() {
     if (b_Rotate.touch() && mouseButton == LEFT) {//[Edit Buttons]
       //[ni]
     }
-    
-    
+
+
     if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
       //[ni]
     }
-    
-    
+
+
     if (b_Mirror_h.touch() && mouseButton == LEFT) {//[Edit Buttons]
       //[ni]
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
-    
+    if (b_Import.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      loadPallet(tf_Import.txtBox.Text);
+    }
+    if (b_Img_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      thread("loadPalletWithImage");
+    }
+    if (b_Save.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      savePallet(tf_Save.txtBox.Text, Pallet, image);
+    }
+    if (b_Clear_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      Pallet.clearPallet();
+      println("Pallet cleard!");
+    }
+    if (b_Sort_Colors.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+    if (b_Pick_Color.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isColorPicking = !isColorPicking;
+      b_Pick_Color.pictureChange();
+    }
+    if (b_Switch.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
   }
   if (layer == 2) {//[Button pressed layer 2] [ni]
+    if (b_Grid.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isGrid = !isGrid;
+      b_Grid.pictureChange();
+    }
+    if (b_Pixel_Mode.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isPixelMode = !isPixelMode;
+      b_Pixel_Mode.pictureChange();
+    }
+    if (b_RGB.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isRGB= !isRGB;
+      b_RGB.pictureChange();
+      //[ni]
+    }
+    if (b_XY.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isXY= !isXY;
+      b_XY.pictureChange();
+      //[ni]
+    }
   }
 }
 

@@ -25,8 +25,8 @@ public class Textbox {
     this.h = h;
     textSize = int(GUIScaleW*24);
   }
-  
-    Textbox(int x, int y, int w, int h, String s) {
+
+  Textbox(int x, int y, int w, int h, String s) {
     this.x = x;
     this.y = y;
     this.w = w;
