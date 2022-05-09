@@ -1,17 +1,13 @@
-/* //<>// //<>// //<>//
+/*
  Author: Philipp Schröder aka KnowOneWasTaken
- Version: 1.0
- Last time edited: 25.04.2022
+ Version: 1.1
+ Last time edited: 09.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
  */
 
 /*
-To do:
- -import new Images
- -initilize new buttons and TextFields
- -maybe do a GUI_Layer class
- 
+
  List of Buttons:
  Menue: b_Image (switch), b_Pallet (switch), b_Rendering (switch)
  Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch)
