@@ -1,10 +1,10 @@
 public class Textbox {
-  int X = 0, Y = 0, H = 35, W = 200;
-  int TEXTSIZE = 24;
-  color bgC = color(140, 140, 140, 175); //background color
-  color fgC = color(0, 0, 0, 175); //foreground color
+  int textSize = 24;
   color bgSC = color(170, 170, 170, 175); //background-Color if selected
   color border = color(30, 30, 30, 175);
+  int x = 0, y = 0, h = 35, w = 200;
+  color bgC = color(140, 140, 140, 175); //background color
+  color fgC = color(0, 0, 0, 175); //foreground color
 
   boolean BorderEnabled = false;
   int BorderWeight = 5;
@@ -19,13 +19,22 @@ public class Textbox {
   }
 
   Textbox(int x, int y, int w, int h) {
-    X = x;
-    Y = y;
-    W = w;
-    H = h;
-    TEXTSIZE = int(GUIScaleW*24);
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    textSize = int(GUIScaleW*24);
   }
   
+    Textbox(int x, int y, int w, int h, String s) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    textSize = int(GUIScaleW*24);
+    Text = s;
+  }
+
   void replaceText(String s) {
     Text = s;
     TextLength = s.length();
@@ -44,12 +53,10 @@ public class Textbox {
     } else {
       noStroke();
     }
-
-    rect(X, Y, W+5, H);
-
+    rect(x, y, w, h);
     fill(fgC);
-    textSize(TEXTSIZE);
-    text(Text, X + (textWidth("a") / 2), Y + TEXTSIZE);
+    textSize(textSize);
+    text(Text, x + (textWidth("a") / 2), y + textSize);
   }
 
   boolean KeyPressed(char Key, int Keycode) {
@@ -191,12 +198,12 @@ public class Textbox {
   }
 
   private void addText(char text) {
-    if (textWidth(Text + text) < W) {
+    if (textWidth(Text + text) < w) {
       Text += text;
       TextLength++;
     } else {
-      if (expand&&(textWidth(text)*2+W+X)<=width) {
-        W=int(textWidth(text)*2)+W;
+      if (expand&&(textWidth(text)*2+w+x)<=width) {
+        w=int(textWidth(text)*2)+w;
         Text += text;
         TextLength++;
       }
@@ -207,13 +214,13 @@ public class Textbox {
     if (TextLength - 1 >= 0) {
       Text = Text.substring(0, TextLength - 1);
       TextLength--;
-      W=int(textWidth(Text)+textWidth("Q"));
+      w=int(textWidth(Text)+textWidth("Q"));
     }
   }
 
-  private boolean overBox(int x, int y) {
-    if (x >= X && x <= X + W) {
-      if (y >= Y && y <= Y + H) {
+  private boolean overBox(int mX, int mY) {
+    if (mX >= x && mX <= x + w) {
+      if (mY >= y && mY <= y + h) {
         return true;
       }
     }
@@ -221,8 +228,8 @@ public class Textbox {
     return false;
   }
 
-  void pressed(int x, int y) {
-    if (overBox(x, y)) {
+  void pressed(int mX, int mY) {
+    if (overBox(mX, mY)) {
       isSelected = true;
     } else {
       isSelected = false;

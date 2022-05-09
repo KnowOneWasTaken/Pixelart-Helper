@@ -361,15 +361,15 @@ class Button {
     clicked = i;
   }
 
-  String bl() {
+  private String bl() {
     return "[Button-Libary] ";
   }
 
-  void bl(String t) {
+  private void bl(String t) {
     println(bl()+t);
   }
 
-  void standard() {
+  private void standard() {
     secondImg=false;
     img3=img2;
     img4=img3;
