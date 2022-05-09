@@ -65,12 +65,13 @@ String Save_box_0 = "save";
 String Change_box_0 = "64;64";
 String Import_box_1 = "colors.csv";
 String Save_box_1 = "user-pallet";
+PImage highResDefault, highResXY, highResRGB;
 
 void setup() {
   //size(720, 480);
   fullScreen();
   frameRate(30);
-  surface.setTitle("Picture-Matcher v1.0");
+  surface.setTitle("Picture-Matcher v1.1");
   surface.setResizable(false);
   surface.setLocation(0, 0);
   image = createImage(10, 10, RGB);
@@ -122,6 +123,7 @@ void setup() {
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
   s.scale = 0.125;
   loadPallet("colors.csv");
+  createHighRes(image);
 }
 
 void draw() {
@@ -138,7 +140,7 @@ void draw() {
 
     //prints the image in the middle of the window with offset, if-statement: checks if there is an image; 2:controls zoom to limit it to 2x width/height depending on picture width/height
     if (image != null) {
-      drawSharpImage(image, (width/2)+ofset.x+ofsetTemp.x, height/2+ofset.y+ofsetTemp.y, image.width*(zoom/image.height), zoom);
+      drawImage(image, (width/2)+ofset.x+ofsetTemp.x, height/2+ofset.y+ofsetTemp.y, image.width*(zoom/image.height), zoom);
     } else {
       println("No picture found!");
     }
@@ -146,6 +148,7 @@ void draw() {
 
   //Debug-Info if the name of the image-file is invalid
   catch(Exception e) {
+    textSize(24*GUIScaleW);
     println("Draw-Function: "+e);
     DebugC = color(255, 0, 0);
     //GUIDebug = "Invalid name or file not found: " + box.Text;
@@ -205,6 +208,7 @@ void draw() {
   Pallet.displaySelected();
 
   //writes the Debug/Info-Text in the bottom left corner and the progress of the match-thread
+  textSize(24*GUIScaleW);
   fill(color(0, 255, 0));
   text(loading, 5, height-int(GUIScaleW*30));
   fill(DebugC);
@@ -214,6 +218,7 @@ void draw() {
   if (image.width*image.height>512*512) {
     fill(255, 0, 0);
     String s = "Image is quite big. This could cause lag!";
+    textSize(24*GUIScaleW);
     text(s, width-textWidth(s), height-10);
   }
 }
@@ -331,7 +336,9 @@ float getCDistance(Color c1, Color c2) {
 //Function to make matchPicture to a thread (gets called as a thread)
 void matchP() {
   image = matchPicture(image, Pallet.colors);
+  createHighRes(image);
   DebugC = color(0, 255, 0);
+  textSize(24*GUIScaleW);
   GUIDebug = "Successfully matched Picture with pallet";
   loading = "";
 }
@@ -518,6 +525,7 @@ void mouseReleased() {
         image = loadImage(tf_Import.txtBox.Text);
         DebugC = color(0, 255, 0);
         GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
+        createHighRes(image);
         println("Picture successfully loaded: "+tf_Import.txtBox.Text);
       }
       catch(Exception e) {
@@ -691,38 +699,18 @@ void loadPalletWithImage() {
 }
 
 //renders Image with the correct rendering-modes (isPixelMode: sharp pixels; isGrid: Grid of Pixels)
-void drawSharpImage(PImage img, float x, float y, float w, float h) {
+void drawImage(PImage img, float x, float y, float w, float h) {
   if (isPixelMode) {
-    if (Itemp != img || s.scale != tempScale) {
-      tempScale = s.scale;
-      Itemp = img;
-      PGraphics pg;
-      pg = createGraphics(int(w), int(h));
-      pg.beginDraw();
-      pg.image(img, 0, 0, w, h);
-      img.loadPixels();
-      pg.noStroke();
-      for (int i = 0; i < img.height; i++) {
-        for (int j = 0; j < img.width; j++) {
-          pg.fill(img.pixels[i*img.width+j]);
-          pg.rect(j*(w/img.width), i*(h/img.height), (w/img.width), (h/img.height));
-        }
-      }
-      pg.endDraw();
-      ItempScale = pg;
-      image(ItempScale, x, y, w, h);
-    } else {
-      image(ItempScale, x, y, w, h);
-    }
+    image(highResDefault, x, y, w, h);
   } else {
     image(img, x, y, w, h);
   }
+  x=x-w/2;
+  y=y-h/2;
   if (isGrid) {
     strokeWeight(0.25);
     stroke(0);
     fill(0);
-    x=x-w/2;
-    y=y-h/2;
     for (int i = 1; i < img.width; i++) {
       line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
     }
@@ -730,6 +718,52 @@ void drawSharpImage(PImage img, float x, float y, float w, float h) {
       line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
     }
   }
+  ColorPicture CP = new ColorPicture(img);
+  if (isXY||isRGB) {
+    for (int j = 0; j < img.height; j++) {
+      for (int i = 0; i < img.width; i++) {
+        color c = CP.getC(i, j).getColor();
+        if (brightness(c)>128) {
+          fill(0);
+        } else {
+          fill(255);
+        }
+        if (isXY) {
+          textAlign(CORNER);
+          textSize((w/img.width)/5);
+          text(i+";"+j, x+i*(w/img.width), y+j*(w/img.height)+(w/img.width)/5);
+        }
+        if (isRGB) {
+          textSize((w/img.width)/7);
+          textAlign(CENTER);
+          text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2);
+          text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
+          text(int(blue(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
+        }
+      }
+    }
+    textAlign(CORNER);
+  }
+}
+
+void createHighRes(PImage img) {
+  int pixelRes = 100;
+  PGraphics pg;
+  pg = createGraphics(int(img.width*pixelRes), int(img.height*pixelRes));
+  pg.beginDraw();
+  pg.image(img, 0, 0, img.width*pixelRes, img.height*pixelRes);
+  img.loadPixels();
+  pg.noStroke();
+  for (int i = 0; i < img.height; i++) {
+    for (int j = 0; j < img.width; j++) {
+      pg.fill(img.pixels[i*img.width+j]);
+      pg.rect(j*(img.width*pixelRes/img.width), i*(img.height*pixelRes/img.height), (img.width*pixelRes/img.width), (img.height*pixelRes/img.height));
+    }
+  }
+  pg.endDraw();
+
+  highResDefault = pg;
+  println("Created High-Resolution Image");
 }
 
 void loadImages() {
@@ -771,6 +805,7 @@ void loadImages() {
   I_Sort_Colors = loadImage("Buttons/SortColors.png");
   I_Switch = loadImage("Buttons/Switch.png");
   I_Change = loadImage("Buttons/Change.png");
+  println("Loaded Images");
 }
 
 void setHitbox(int lay, boolean b) {

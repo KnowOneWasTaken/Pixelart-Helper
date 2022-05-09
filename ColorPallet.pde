@@ -11,6 +11,7 @@ class ColorPallet {
 
   ColorPallet() {
   }
+  
   ColorPallet(Color[] col, int x, int y, int w, int h, boolean isVertically) {
     pallet = new color[col.length];
     for (int i = 0; i < col.length; i++) {
