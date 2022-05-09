@@ -66,11 +66,13 @@ String Change_box_0 = "64;64";
 String Import_box_1 = "colors.csv";
 String Save_box_1 = "user-pallet";
 
+PImage highResDefault, highResXY, highResRGB;
+
 void setup() {
   //size(720, 480);
   fullScreen();
   frameRate(30);
-  surface.setTitle("Picture-Matcher v1.0");
+  surface.setTitle("Picture-Matcher v1.1");
   surface.setResizable(false);
   surface.setLocation(0, 0);
   image = createImage(10, 10, RGB);
@@ -122,6 +124,7 @@ void setup() {
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
   s.scale = 0.125;
   loadPallet("colors.csv");
+  createHighRes(image);
 }
 
 void draw() {
@@ -138,7 +141,7 @@ void draw() {
 
     //prints the image in the middle of the window with offset, if-statement: checks if there is an image; 2:controls zoom to limit it to 2x width/height depending on picture width/height
     if (image != null) {
-      drawSharpImage(image, (width/2)+ofset.x+ofsetTemp.x, height/2+ofset.y+ofsetTemp.y, image.width*(zoom/image.height), zoom);
+      drawImage(image, (width/2)+ofset.x+ofsetTemp.x, height/2+ofset.y+ofsetTemp.y, image.width*(zoom/image.height), zoom);
     } else {
       println("No picture found!");
     }
@@ -146,6 +149,7 @@ void draw() {
 
   //Debug-Info if the name of the image-file is invalid
   catch(Exception e) {
+    textSize(24*GUIScaleW);
     println("Draw-Function: "+e);
     DebugC = color(255, 0, 0);
     //GUIDebug = "Invalid name or file not found: " + box.Text;
@@ -205,6 +209,7 @@ void draw() {
   Pallet.displaySelected();
 
   //writes the Debug/Info-Text in the bottom left corner and the progress of the match-thread
+  textSize(24*GUIScaleW);
   fill(color(0, 255, 0));
   text(loading, 5, height-int(GUIScaleW*30));
   fill(DebugC);
@@ -214,6 +219,7 @@ void draw() {
   if (image.width*image.height>512*512) {
     fill(255, 0, 0);
     String s = "Image is quite big. This could cause lag!";
+    textSize(24*GUIScaleW);
     text(s, width-textWidth(s), height-10);
   }
 }
@@ -291,7 +297,6 @@ void savePallet(String s, ColorPallet p, PImage img) {
   }
   saveTable(t, "color pallets/"+s+".csv");
   loading = "";
-  loadPallet("image-pallet.csv");
   DebugC = color(0, 255, 0);
   GUIDebug ="Successfully saved Pallet: "+"color pallets/"+s+".csv";
   println("Successfully saved Pallet: "+"color pallets/"+s+".csv");
@@ -332,7 +337,9 @@ float getCDistance(Color c1, Color c2) {
 //Function to make matchPicture to a thread (gets called as a thread)
 void matchP() {
   image = matchPicture(image, Pallet.colors);
+  createHighRes(image);
   DebugC = color(0, 255, 0);
+  textSize(24*GUIScaleW);
   GUIDebug = "Successfully matched Picture with pallet";
   loading = "";
 }
@@ -519,6 +526,7 @@ void mouseReleased() {
         image = loadImage(tf_Import.txtBox.Text);
         DebugC = color(0, 255, 0);
         GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
+        createHighRes(image);
         println("Picture successfully loaded: "+tf_Import.txtBox.Text);
       }
       catch(Exception e) {
@@ -601,6 +609,11 @@ void mouseReleased() {
     if (b_Rotate.touch() && mouseButton == LEFT) {//[Edit Buttons]
       //[ni]
     }
+
+    if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+
     
     
     if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
@@ -613,6 +626,50 @@ void mouseReleased() {
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
+
+    if (b_Import.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      loadPallet(tf_Import.txtBox.Text);
+    }
+    if (b_Img_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      thread("loadPalletWithImage");
+    }
+    if (b_Save.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      savePallet(tf_Save.txtBox.Text, Pallet, image);
+    }
+    if (b_Clear_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      Pallet.clearPallet();
+      println("Pallet cleard!");
+    }
+    if (b_Sort_Colors.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+    if (b_Pick_Color.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isColorPicking = !isColorPicking;
+      b_Pick_Color.pictureChange();
+    }
+    if (b_Switch.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+  }
+  if (layer == 2) {//[Button pressed layer 2] [ni]
+    if (b_Grid.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isGrid = !isGrid;
+      b_Grid.pictureChange();
+    }
+    if (b_Pixel_Mode.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isPixelMode = !isPixelMode;
+      b_Pixel_Mode.pictureChange();
+    }
+    if (b_RGB.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isRGB= !isRGB;
+      b_RGB.pictureChange();
+      //[ni]
+    }
+    if (b_XY.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      isXY= !isXY;
+      b_XY.pictureChange();
+      //[ni]
+    }
     
   }
   if (layer == 2) {//[Button pressed layer 2] [ni]
@@ -652,44 +709,162 @@ void loadPalletWithImage() {
 }
 
 //renders Image with the correct rendering-modes (isPixelMode: sharp pixels; isGrid: Grid of Pixels)
-void drawSharpImage(PImage img, float x, float y, float w, float h) {
+void drawImage(PImage img, float x, float y, float w, float h) {
   if (isPixelMode) {
-    if (Itemp != img || s.scale != tempScale) {
-      tempScale = s.scale;
-      Itemp = img;
-      PGraphics pg;
-      pg = createGraphics(int(w), int(h));
-      pg.beginDraw();
-      pg.image(img, 0, 0, w, h);
-      img.loadPixels();
-      pg.noStroke();
-      for (int i = 0; i < img.height; i++) {
-        for (int j = 0; j < img.width; j++) {
-          pg.fill(img.pixels[i*img.width+j]);
-          pg.rect(j*(w/img.width), i*(h/img.height), (w/img.width), (h/img.height));
-        }
-      }
-      pg.endDraw();
-      ItempScale = pg;
-      image(ItempScale, x, y, w, h);
-    } else {
-      image(ItempScale, x, y, w, h);
-    }
+    image(highResDefault, x, y, w, h);
   } else {
     image(img, x, y, w, h);
   }
+  x=x-w/2;
+  y=y-h/2;
   if (isGrid) {
     strokeWeight(0.25);
     stroke(0);
     fill(0);
-    x=x-w/2;
-    y=y-h/2;
     for (int i = 1; i < img.width; i++) {
       line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
     }
     for (int i = 1; i < img.width; i++) {
       line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
     }
+  }
+  ColorPicture CP = new ColorPicture(img);
+  if (isXY||isRGB) {
+    for (int j = 0; j < img.height; j++) {
+      for (int i = 0; i < img.width; i++) {
+        color c = CP.getC(i, j).getColor();
+        if (brightness(c)>128) {
+          fill(0);
+        } else {
+          fill(255);
+        }
+        if (isXY) {
+          textAlign(CORNER);
+          textSize((w/img.width)/5);
+          text(i+";"+j, x+i*(w/img.width), y+j*(w/img.height)+(w/img.width)/5);
+        }
+        if (isRGB) {
+          textSize((w/img.width)/7);
+          textAlign(CENTER);
+          text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2);
+          text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
+          text(int(blue(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
+        }
+      }
+    }
+    textAlign(CORNER);
+  }
+}
+
+void createHighRes(PImage img) {
+  int pixelRes = 100;
+  PGraphics pg;
+  pg = createGraphics(int(img.width*pixelRes), int(img.height*pixelRes));
+  pg.beginDraw();
+  pg.image(img, 0, 0, img.width*pixelRes, img.height*pixelRes);
+  img.loadPixels();
+  pg.noStroke();
+  for (int i = 0; i < img.height; i++) {
+    for (int j = 0; j < img.width; j++) {
+      pg.fill(img.pixels[i*img.width+j]);
+      pg.rect(j*(img.width*pixelRes/img.width), i*(img.height*pixelRes/img.height), (img.width*pixelRes/img.width), (img.height*pixelRes/img.height));
+    }
+  }
+  pg.endDraw();
+
+  highResDefault = pg;
+  println("Created High-Resolution Image");
+}
+
+void loadImages() {
+  I_off_Edit = loadImage("Buttons/off_Edit.png");
+  I_off_Filter = loadImage("Buttons/off_Filter.png");
+  I_off_Grid = loadImage("Buttons/off_Grid.png");
+  I_off_Image = loadImage("Buttons/off_Image.png");
+  I_off_Pick_Color = loadImage("Buttons/off_PickColor.png");
+  I_off_PixelMode = loadImage("Buttons/off_PixelMode.png");
+  I_off_Rendering = loadImage("Buttons/off_Rendering.png");
+  I_off_RGB = loadImage("Buttons/off_RGB.png");
+  I_off_XY = loadImage("Buttons/off_XY.png");
+  I_off_Pallet = loadImage("Buttons/off_Pallet.png");
+
+  I_on_Edit = loadImage("Buttons/on_Edit.png");
+  I_on_Filter = loadImage("Buttons/on_Filter.png");
+  I_on_Grid = loadImage("Buttons/on_Grid.png");
+  I_on_Image = loadImage("Buttons/on_Image.png");
+  I_on_Pick_Color = loadImage("Buttons/on_PickColor.png");
+  I_on_PixelMode = loadImage("Buttons/on_PixelMode.png");
+  I_on_Rendering = loadImage("Buttons/on_Rendering.png");
+  I_on_RGB = loadImage("Buttons/on_RGB.png");
+  I_on_XY = loadImage("Buttons/on_XY.png");
+  I_on_Pallet = loadImage("Buttons/on_Pallet.png");
+
+  I_BlackAndWhite = loadImage("Buttons/BlackAndWhite.png");
+  I_Blur = loadImage("Buttons/Blur.png");
+  I_Clear_Pallet = loadImage("Buttons/ClearPallet.png");
+  I_Edges = loadImage("Buttons/Edges.png");
+  I_Img_Pallet = loadImage("Buttons/ImgPallet.png");
+  I_Import = loadImage("Buttons/Import.png");
+  I_Match = loadImage("Buttons/Match.png");
+  I_Mirror_h = loadImage("Buttons/Mirror_h.png");
+  I_Mirror_v = loadImage("Buttons/Mirror_v.png");
+  I_Relief = loadImage("Buttons/Relief.png");
+  I_Rotate = loadImage("Buttons/Rotate.png");
+  I_Save = loadImage("Buttons/Save.png");
+  I_Sharpen = loadImage("Buttons/Sharpen.png");
+  I_Sort_Colors = loadImage("Buttons/SortColors.png");
+  I_Switch = loadImage("Buttons/Switch.png");
+  I_Change = loadImage("Buttons/Change.png");
+  println("Loaded Images");
+}
+
+void setHitbox(int lay, boolean b) {
+  if (lay == 0) {
+    b_Relief.setHitbox(b);
+    b_Sharpen.setHitbox(b);
+    b_Black_And_White.setHitbox(b);
+    b_Edges.setHitbox(b);
+    b_Blur.setHitbox(b);
+
+    b_Rotate.setHitbox(b);
+    b_Mirror_v.setHitbox(b);
+    b_Mirror_h.setHitbox(b);
+
+    b_Filter.setHitbox(b);
+    b_Edit.setHitbox(b);
+
+    b_Match.setHitbox(b);
+    b_Change.setHitbox(b);
+    b_Save.setHitbox(b);
+    b_Import.setHitbox(b);
+  }
+  if (lay == 1) {
+    b_Import.setHitbox(b);
+    b_Img_Pallet.setHitbox(b);
+    b_Save.setHitbox(b);
+    b_Clear_Pallet.setHitbox(b);
+    b_Sort_Colors.setHitbox(b);
+    b_Pick_Color.setHitbox(b);
+    b_Switch.setHitbox(b);
+  }
+  if (lay == 2) {
+    b_Grid.setHitbox(b);
+    b_Pixel_Mode.setHitbox(b);
+    b_RGB.setHitbox(b);
+    b_XY.setHitbox(b);
+  }
+
+  if (lay == -1) {//Filter
+    b_Relief.setHitbox(b);
+    b_Sharpen.setHitbox(b);
+    b_Black_And_White.setHitbox(b);
+    b_Edges.setHitbox(b);
+    b_Blur.setHitbox(b);
+  }
+  if (lay == -2) {//Edit
+    b_Rotate.setHitbox(b);
+    b_Mirror_v.setHitbox(b);
+    b_Mirror_h.setHitbox(b);
   }
 }
 
@@ -773,6 +948,7 @@ void setHitbox(int lay, boolean b) {
   if (lay == -1) {//Filter
     b_Relief.setHitbox(b);
     b_Sharpen.setHitbox(b);
+    
     b_Black_And_White.setHitbox(b);
     b_Edges.setHitbox(b);
     b_Blur.setHitbox(b);

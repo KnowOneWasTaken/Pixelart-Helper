@@ -32,11 +32,15 @@ class ColorPicture {
   }
   
   private int getZ(int x, int y) {//returns the number in a pixel-array of an Image with given x and y coordinates
-    return x*pHeight+y;
+    return x+y*pWidth;
   }
 
   Color getC(int x, int y) { //returns the Color of a pixel in the ArrayList at specific x and y coordinates in a picture
     return pixel[getZ(x,y)];
+  }
+  
+  Color getC(int z) {
+     return pixel[z];
   }
 
   void setC(Color c, int x, int y) {//sets the Color in the ArrayList of Colors at a specific x and y coordinate
