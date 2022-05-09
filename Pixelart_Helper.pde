@@ -65,6 +65,7 @@ String Save_box_0 = "save";
 String Change_box_0 = "64;64";
 String Import_box_1 = "colors.csv";
 String Save_box_1 = "user-pallet";
+
 PImage highResDefault, highResXY, highResRGB;
 
 void setup() {
@@ -609,17 +610,23 @@ void mouseReleased() {
       //[ni]
     }
 
-
     if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
       //[ni]
     }
 
-
+    
+    
+    if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      //[ni]
+    }
+    
+    
     if (b_Mirror_h.touch() && mouseButton == LEFT) {//[Edit Buttons]
       //[ni]
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
+
     if (b_Import.touch() && mouseButton == LEFT) {//[Edit Buttons]
       loadPallet(tf_Import.txtBox.Text);
     }
@@ -663,6 +670,9 @@ void mouseReleased() {
       b_XY.pictureChange();
       //[ni]
     }
+    
+  }
+  if (layer == 2) {//[Button pressed layer 2] [ni]
   }
 }
 
@@ -847,6 +857,98 @@ void setHitbox(int lay, boolean b) {
   if (lay == -1) {//Filter
     b_Relief.setHitbox(b);
     b_Sharpen.setHitbox(b);
+    b_Black_And_White.setHitbox(b);
+    b_Edges.setHitbox(b);
+    b_Blur.setHitbox(b);
+  }
+  if (lay == -2) {//Edit
+    b_Rotate.setHitbox(b);
+    b_Mirror_v.setHitbox(b);
+    b_Mirror_h.setHitbox(b);
+  }
+}
+
+void loadImages() {
+  I_off_Edit = loadImage("Buttons/off_Edit.png");
+  I_off_Filter = loadImage("Buttons/off_Filter.png");
+  I_off_Grid = loadImage("Buttons/off_Grid.png");
+  I_off_Image = loadImage("Buttons/off_Image.png");
+  I_off_Pick_Color = loadImage("Buttons/off_PickColor.png");
+  I_off_PixelMode = loadImage("Buttons/off_PixelMode.png");
+  I_off_Rendering = loadImage("Buttons/off_Rendering.png");
+  I_off_RGB = loadImage("Buttons/off_RGB.png");
+  I_off_XY = loadImage("Buttons/off_XY.png");
+  I_off_Pallet = loadImage("Buttons/off_Pallet.png");
+
+  I_on_Edit = loadImage("Buttons/on_Edit.png");
+  I_on_Filter = loadImage("Buttons/on_Filter.png");
+  I_on_Grid = loadImage("Buttons/on_Grid.png");
+  I_on_Image = loadImage("Buttons/on_Image.png");
+  I_on_Pick_Color = loadImage("Buttons/on_PickColor.png");
+  I_on_PixelMode = loadImage("Buttons/on_PixelMode.png");
+  I_on_Rendering = loadImage("Buttons/on_Rendering.png");
+  I_on_RGB = loadImage("Buttons/on_RGB.png");
+  I_on_XY = loadImage("Buttons/on_XY.png");
+  I_on_Pallet = loadImage("Buttons/on_Pallet.png");
+
+  I_BlackAndWhite = loadImage("Buttons/BlackAndWhite.png");
+  I_Blur = loadImage("Buttons/Blur.png");
+  I_Clear_Pallet = loadImage("Buttons/ClearPallet.png");
+  I_Edges = loadImage("Buttons/Edges.png");
+  I_Img_Pallet = loadImage("Buttons/ImgPallet.png");
+  I_Import = loadImage("Buttons/Import.png");
+  I_Match = loadImage("Buttons/Match.png");
+  I_Mirror_h = loadImage("Buttons/Mirror_h.png");
+  I_Mirror_v = loadImage("Buttons/Mirror_v.png");
+  I_Relief = loadImage("Buttons/Relief.png");
+  I_Rotate = loadImage("Buttons/Rotate.png");
+  I_Save = loadImage("Buttons/Save.png");
+  I_Sharpen = loadImage("Buttons/Sharpen.png");
+  I_Sort_Colors = loadImage("Buttons/SortColors.png");
+  I_Switch = loadImage("Buttons/Switch.png");
+  I_Change = loadImage("Buttons/Change.png");
+}
+
+void setHitbox(int lay, boolean b) {
+  if (lay == 0) {
+    b_Relief.setHitbox(b);
+    b_Sharpen.setHitbox(b);
+    b_Black_And_White.setHitbox(b);
+    b_Edges.setHitbox(b);
+    b_Blur.setHitbox(b);
+
+    b_Rotate.setHitbox(b);
+    b_Mirror_v.setHitbox(b);
+    b_Mirror_h.setHitbox(b);
+
+    b_Filter.setHitbox(b);
+    b_Edit.setHitbox(b);
+
+    b_Match.setHitbox(b);
+    b_Change.setHitbox(b);
+    b_Save.setHitbox(b);
+    b_Import.setHitbox(b);
+  }
+  if (lay == 1) {
+    b_Import.setHitbox(b);
+    b_Img_Pallet.setHitbox(b);
+    b_Save.setHitbox(b);
+    b_Clear_Pallet.setHitbox(b);
+    b_Sort_Colors.setHitbox(b);
+    b_Pick_Color.setHitbox(b);
+    b_Switch.setHitbox(b);
+  }
+  if (lay == 2) {
+    b_Grid.setHitbox(b);
+    b_Pixel_Mode.setHitbox(b);
+    b_RGB.setHitbox(b);
+    b_XY.setHitbox(b);
+  }
+
+  if (lay == -1) {//Filter
+    b_Relief.setHitbox(b);
+    b_Sharpen.setHitbox(b);
+    
     b_Black_And_White.setHitbox(b);
     b_Edges.setHitbox(b);
     b_Blur.setHitbox(b);
