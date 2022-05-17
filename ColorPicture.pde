@@ -31,7 +31,7 @@ class ColorPicture {
     return pixelCount;
   }
 
-  private int getZ(int x, int y) {//returns the number in a pixel-array of an Image with given x and y coordinates
+  int getZ(int x, int y) {//returns the number in a pixel-array of an Image with given x and y coordinates
     return x+y*pWidth;
   }
   Color getC(int z) {

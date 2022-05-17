@@ -29,8 +29,8 @@ class TextField {
   void replaceText(String s) {
     txtBox.replaceText(s);
   }
-  
+
   void pressed(int mX, int mY) {
-     txtBox.pressed(mX,mY); 
+    txtBox.pressed(mX, mY);
   }
 }

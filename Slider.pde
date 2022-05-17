@@ -57,13 +57,13 @@ class Slider {
     } else {
       noTint();
     }
-    
+
     if (pressed) {
       c=color(150, 150, 200);
     } else {
       c=color(175, 175, 175);
     }
-    
+
     if (useBG) {
       image(bg, x, y, w, h);
     } else {

@@ -114,8 +114,8 @@ class Button {
     if (secondImg==false) {
       if (pic!=null) {
         image(pic, x+w*((1-groesse)/2), y+(h*(1-groesse)/2), w-(1-groesse)*w, h-(1-groesse)*h);
-      } else if(help) {
-         println("Error: pic == null: x: " + x+"; y: "+y); 
+      } else if (help) {
+        println("Error: pic == null: x: " + x+"; y: "+y);
       }
     } else {
       noTint();
