@@ -2,7 +2,7 @@
 
  Author: Philipp Schröder aka KnowOneWasTaken
  Version: 1.0.1
- Last time edited: 17.05.2022
+ Last time edited: 19.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
  
@@ -33,7 +33,6 @@ Button b_Grid, b_Pixel_Mode, b_RGB, b_XY; //Buttons for Rendering-Layer
 int layer = 0; //int for the shown GUI-Layer: 0 = Image; 1 = Pallet; 2 = Rendering
 
 TextField tf_Import, tf_Save, tf_Change;
-PImage Itemp, ItempScale;
 PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_Pick_Color, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_Pick_Color, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY, I_on_Pencil, I_off_Pencil;
 PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change;
 String GUIDebug = "";
@@ -58,9 +57,11 @@ String Save_box_0 = "save";
 String Change_box_0 = "64;64";
 String Import_box_1 = "colors.csv";
 String Save_box_1 = "user-pallet";
-PImage highResDefault, highResXY, highResRGB;
+PImage highRes;//, highResXY, highResRGB
 int oldWidth;
 int oldHeight;
+Filter Filter = new Filter();
+//int resolutionHighRes = 50; //resolution of the highRes image (one pixel width and height
 
 void setup() {
   //size(1920, 1080, P2D);
@@ -74,7 +75,7 @@ void setup() {
 
   loadGUI();
   s.scale = 0.125;
-  createHighRes(image);
+  createHighRes();
   oldWidth = width;
   oldHeight = height;
 }
@@ -97,58 +98,64 @@ void draw() {
   //Debug-Info if the name of the image-file is invalid
   catch(Exception e) {
     textSize(24*GUIScaleW);
-    println("Draw-Function: "+e);
+    println("[Draw] Error while drawing Image: "+e);
     DebugC = color(255, 0, 0);
-    //GUIDebug = "Invalid name or file not found: " + box.Text;
+    GUIDebug = "Error while drawing Image on sceen!";
     image = createImage(10, 10, RGB);
   }
   imageMode(CORNER);
   //Menue
-  b_m_Image.show2();
-  b_m_Pallet.show2();
-  b_m_Rendering.show2();
-  b_Pencil.show2();
 
-  //Layers
-  if (layer == 0) { //[layer draw]
-    tf_Import.display();
-    tf_Save.display();
-    tf_Change.display();
-    b_Import.show2();
-    b_Match.show2();
-    b_Save.show2();
-    b_Change.show2();
-    b_Filter.show2();
-    b_Edit.show2();
-    if (isFilter) {
-      b_Relief.show2();
-      b_Sharpen.show2();
-      b_Black_And_White.show2();
-      b_Edges.show2();
-      b_Blur.show2();
+  try {
+    b_m_Image.show2();
+    b_m_Pallet.show2();
+    b_m_Rendering.show2();
+    b_Pencil.show2();
+
+    //Layers
+    if (layer == 0) { //[layer draw]
+      tf_Import.display();
+      tf_Save.display();
+      tf_Change.display();
+      b_Import.show2();
+      b_Match.show2();
+      b_Save.show2();
+      b_Change.show2();
+      b_Filter.show2();
+      b_Edit.show2();
+      if (isFilter) {
+        b_Relief.show2();
+        b_Sharpen.show2();
+        b_Black_And_White.show2();
+        b_Edges.show2();
+        b_Blur.show2();
+      }
+      if (isEdit) {
+        b_Rotate.show2();
+        b_Mirror_v.show2();
+        b_Mirror_h.show2();
+      }
     }
-    if (isEdit) {
-      b_Rotate.show2();
-      b_Mirror_v.show2();
-      b_Mirror_h.show2();
+    if (layer == 1) {
+      tf_Import.display();
+      tf_Save.display();
+      b_Import.show2();
+      b_Save.show2();
+      b_Img_Pallet.show2();
+      b_Clear_Pallet.show2();
+      b_Sort_Colors.show2();
+      b_Pick_Color.show2();
+      b_Switch.show2();
+    }
+    if (layer == 2) {
+      b_Grid.show2();
+      b_Pixel_Mode.show2();
+      b_RGB.show2();
+      b_XY.show2();
     }
   }
-  if (layer == 1) {
-    tf_Import.display();
-    tf_Save.display();
-    b_Import.show2();
-    b_Save.show2();
-    b_Img_Pallet.show2();
-    b_Clear_Pallet.show2();
-    b_Sort_Colors.show2();
-    b_Pick_Color.show2();
-    b_Switch.show2();
-  }
-  if (layer == 2) {
-    b_Grid.show2();
-    b_Pixel_Mode.show2();
-    b_RGB.show2();
-    b_XY.show2();
+  catch(Exception e) {
+    println("[Draw] Error while showing Buttons: "+e);
   }
   s.show();
 
@@ -164,7 +171,7 @@ void draw() {
   text(GUIDebug, 5, height-10);
 
   //tells User if the image is too large for this program
-  if (image.width*image.height>512*512) {
+  if (image.width*image.height>=256*256) {
     fill(255, 0, 0);
     String s = "Image is quite big. This could cause lag!";
     textSize(24*GUIScaleW);
@@ -179,7 +186,6 @@ void draw() {
 }
 
 void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of Colors (Color[] colors)
-
   //loads Pallet of an Image if it is .png or .jpg
   if (s.substring(s.length()-4, s.length()).equals(".png") || s.substring(s.length()-4, s.length()).equals(".jpg")) {
     println("Try to load pallet from picture");
@@ -206,6 +212,12 @@ void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of 
   else {
     try {
       colorTable = loadTable("/color pallets/"+s, "header");
+      //if (Pallet.colors.length!=0) {
+      //  for (int i = 0; i < Pallet.pallet.length; i++) {
+      //    Pallet.colors[i] = new Color(int(red(Pallet.pallet[i])), int(green(Pallet.pallet[i])), int(blue(Pallet.pallet[i])));
+      //  }
+      //}
+      //Color[] c = new Color[colorTable.getRowCount()];
       int z = 0;
       Pallet.colors = new Color[colorTable.getRowCount()];
       for (TableRow row : colorTable.rows()) {
@@ -216,6 +228,14 @@ void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of 
         z++;
       }
       Pallet = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
+      //for (TableRow row : colorTable.rows()) {
+      //  c[z] = new Color();
+      //  c[z].red = row.getInt("red");
+      //  c[z].blue = row.getInt("blue");
+      //  c[z].green = row.getInt("green");
+      //  z++;
+      //}
+      //Pallet.addColors(c);
       println("Pallet successfully loaded: "+s);
       GUIDebug = "Successfully loaded Pallet: "+s;
       DebugC = color(0, 255, 0);
@@ -223,15 +243,21 @@ void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of 
 
     //prints Error-message and loads an empty color-pallet after it creates it
     catch(Exception e) {
-      println("Error while loading Color-Pallet named: "+s);
-      Table t = new Table();
-      t.addColumn("red");
-      t.addColumn("green");
-      t.addColumn("blue");
-      saveTable(t, "color pallets/empty-color-pallet.csv");
-      loadPallet("empty-color-pallet.csv");
-      GUIDebug = "Error while loading Pallet: "+s;
-      DebugC = color(255, 0, 0);
+      if (s !="empty-color-pallet.csv") {
+        println("Error while loading Color-Pallet named: "+s + " | Error: "+e);
+        Table t = new Table();
+        t.addColumn("red");
+        t.addColumn("green");
+        t.addColumn("blue");
+        saveTable(t, "color pallets/empty-color-pallet.csv");
+        loadPallet("empty-color-pallet.csv");
+        GUIDebug = "Error while loading Pallet: "+s;
+        DebugC = color(255, 0, 0);
+      } else {
+        GUIDebug = "Error while loading Pallet: "+s;
+        DebugC = color(255, 0, 0);
+        println("Error while loading empty Color-Pallet: "+e);
+      }
     }
   }
 }
@@ -291,7 +317,7 @@ float getCDistance(Color c1, Color c2) {
 //Function to make matchPicture to a thread (gets called as a thread)
 void matchP() {
   image = matchPicture(image, Pallet.colors);
-  createHighRes(image);
+  thread("createHighRes");
   DebugC = color(0, 255, 0);
   textSize(24*GUIScaleW);
   GUIDebug = "Successfully matched Picture with pallet";
@@ -369,12 +395,29 @@ void mouseReleased() {
         println("[mouseReleased] Error while adding picked Color of Image: "+e);
       }
     }
-    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX,mouseY)==false&&(key!=' '||keyPressed==false)&&b_Pencil.touch()==false) {
+    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false&&(key!=' '||keyPressed==false)&&b_Pencil.touch()==false) {
       try {
         image.loadPixels();
         PVector v = getCoordinatesInImage(mouseX, mouseY);
         image.pixels[int(v.x+v.y*image.width)] = Pallet.getPickedColor();
-        createHighRes(image);
+        int resolutionHighRes = int((1f/image.width)*1600); //calculates and stores the width and height of one pixel in highRes-Image
+        //PGraphics pg;
+        //pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
+        //pg.beginDraw();
+        //pg.image(highRes,0,0);
+        //pg.fill(Pallet.getPickedColor());
+        //pg.noStroke();
+        //pg.rect(int(v.x*resolutionHighRes),int(v.y*resolutionHighRes),resolutionHighRes,resolutionHighRes);
+        //pg.endDraw();
+        //highRes = pg;
+        highRes.loadPixels();
+        for (int i = 0; i < resolutionHighRes; i++) { //draws changed Pixel onto highRes-Image
+          for (int j = 0; j <  resolutionHighRes; j++) {
+            highRes.pixels[int(v.x*resolutionHighRes+v.y*image.width*resolutionHighRes*resolutionHighRes)+i*resolutionHighRes*image.width+j] = Pallet.getPickedColor();
+          }
+        }
+        highRes.updatePixels();
+        //thread("createHighRes");
       }
       catch(Exception e) {
         println("[mouseReleased] Error while painting on Image: "+e);
@@ -462,9 +505,16 @@ void mouseReleased() {
     if (b_Import.touch() && mouseButton == LEFT) {
       try {
         image = loadImage(tf_Import.txtBox.Text);
+        //if (image.width > 256 || height > 256) {
+        //  if (image.width>image.height) {
+        //    image.resize(255, int((image.height/image.width*1f)*255));
+        //  } else {
+        //    image.resize(int((image.width/image.height*1f)*255),255 );
+        //  }
+        //}
         DebugC = color(0, 255, 0);
         GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
-        createHighRes(image);
+        thread("createHighRes");
         println("Picture successfully loaded: "+tf_Import.txtBox.Text);
       }
       catch(Exception e) {
@@ -501,7 +551,7 @@ void mouseReleased() {
         setHitbox(-1, true); //activates hitbox of Buttons subordinated to Filter
       } else {
         //hitbox of subordinated buttons off
-        setHitbox(-1, false);//deactivates hitbox of Buttons subordinated to Filter
+        setHitbox(-1, false); //deactivates hitbox of Buttons subordinated to Filter
       }
     }
 
@@ -535,11 +585,13 @@ void mouseReleased() {
 
 
     if (b_Edges.touch() && mouseButton == LEFT) {
-      //[ni]
+      image = Filter.edges(image);
+      thread("createHighRes");
     }
 
     if (b_Blur.touch() && mouseButton == LEFT) {
-      //[ni]
+      image = Filter.blur(image, 3, 3);
+      thread("createHighRes");
     }
 
 
@@ -619,6 +671,12 @@ void loadPalletWithImage() {
   t.addColumn("green");
   t.addColumn("blue");
   img.loadPixels();
+  for (Color c : Pallet.colors) {
+    TableRow r = t.addRow();
+    r.setInt("red", c.red);
+    r.setInt("green", c.green);
+    r.setInt("blue", c.blue);
+  }
   for (int i = 0; i < img.width; i++) {
     for (int j = 0; j < img.height; j++) {
       boolean isDouble = false;
@@ -645,116 +703,131 @@ void loadPalletWithImage() {
 
 //renders Image with the correct rendering-modes (isPixelMode: sharp pixels; isGrid: Grid of Pixels)
 void drawImage(PImage img, float x, float y, float w, float h) {
-  if (isPixelMode) {
-    image(highResDefault, x, y, w, h);
-  } else {
-    image(img, x, y, w, h);
-  }
-  x=x-w/2;
-  y=y-h/2;
-  if (isGrid) {
-    strokeWeight(0.5);
-    stroke(0);
-    fill(0);
-    for (int i = 1; i < img.width; i++) {
-      line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
-    }
-    for (int i = 1; i < img.width; i++) {
-      line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
+  try {
+    if (isPixelMode) {
+      image(highRes, x, y, w, h);
+    } else {
+      image(img, x, y, w, h);
     }
   }
-  ColorPicture CP = new ColorPicture(img);
-  if (isXY||isRGB) {
-    for (int j = 0; j < img.height; j++) {
-      for (int i = 0; i < img.width; i++) {
-        color c = CP.getC(i, j).getColor();
-        if (brightness(c)>128) {
-          fill(0);
-        } else {
-          fill(255);
-        }
-        if (isXY) {
-          textAlign(CORNER);
-          textSize((w/img.width)/5);
-          text(i+";"+j, x+i*(w/img.width), y+j*(w/img.height)+(w/img.width)/5);
-        }
-        if (isRGB) {
-          textSize((w/img.width)/7);
-          textAlign(CENTER);
-          text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2);
-          text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
-          text(int(blue(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
-        }
+  catch(Exception e) {
+    println("[drawImage] Error while drawing Images [1]: "+e);
+  }
+  try {
+    x=x-w/2;
+    y=y-h/2;
+    if (isGrid) {
+      strokeWeight(0.5);
+      stroke(0);
+      fill(0);
+      for (int i = 1; i < img.width; i++) {
+        line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
+      }
+      for (int i = 1; i < img.width; i++) {
+        line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
       }
     }
-    textAlign(CORNER);
+    ColorPicture CP = new ColorPicture(img);
+    if (isXY||isRGB) {
+      for (int j = 0; j < img.height; j++) {
+        for (int i = 0; i < img.width; i++) {
+          color c = CP.getC(i, j).getColor();
+          if (brightness(c)>128) {
+            fill(0);
+          } else {
+            fill(255);
+          }
+          if (isXY) {
+            textAlign(CORNER);
+            textSize((w/img.width)/5);
+            text(i+";"+j, x+i*(w/img.width), y+j*(w/img.height)+(w/img.width)/5);
+          }
+          if (isRGB) {
+            textSize((w/img.width)/7);
+            textAlign(CENTER);
+            text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2);
+            text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
+            text(int(blue(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
+          }
+        }
+      }
+      textAlign(CORNER);
+    }
+  }
+  catch(Exception e) {
+    println("[drawImage] Error while drawing Overlay [2]: "+e);
   }
 }
 
-void createHighRes(PImage img) {
-  int pixelRes = 100;
+void createHighRes() {
+  int resolutionHighRes = int((1f/image.width)*1600);
   PGraphics pg;
-  pg = createGraphics(int(img.width*pixelRes), int(img.height*pixelRes));
+  pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
   pg.beginDraw();
-  pg.image(img, 0, 0, img.width*pixelRes, img.height*pixelRes);
-  img.loadPixels();
+  pg.image(image, 0, 0, image.width*resolutionHighRes, image.height*resolutionHighRes);
+  image.loadPixels();
   pg.noStroke();
-  for (int i = 0; i < img.height; i++) {
-    for (int j = 0; j < img.width; j++) {
-      pg.fill(img.pixels[i*img.width+j]);
-      pg.rect(j*(img.width*pixelRes/img.width), i*(img.height*pixelRes/img.height), (img.width*pixelRes/img.width), (img.height*pixelRes/img.height));
+  for (int i = 0; i < image.height; i++) {
+    for (int j = 0; j < image.width; j++) {
+      pg.fill(image.pixels[i*image.width+j]);
+      pg.rect(j*(image.width*resolutionHighRes/image.width), i*(image.height*resolutionHighRes/image.height), (image.width*resolutionHighRes/image.width), (image.height*resolutionHighRes/image.height));
+      //fill(255-floor(((i*image.width+j)/((image.height*image.width)*1f))*255f), floor(((i*image.width+j)/((image.height*image.width)*1f))*100f), 0);
+      loading = "Create high-resolution Image: "+floor(((i*image.width+j)/((image.height*image.width)*1f))*100f)+"%";
     }
   }
   pg.endDraw();
 
-  highResDefault = pg;
-  //println("Created High-Resolution Image");
+  highRes = pg;
+  image.save("auto save/last_session_"+day()+"."+month()+"."+year()+"_"+hour()+".png");
+  println("Created High-Resolution Image");
+  loading="";
 }
 
 void loadImages() {
-  try{
-  I_off_Edit = loadImage("Buttons/off_Edit.png");
-  I_off_Filter = loadImage("Buttons/off_Filter.png");
-  I_off_Grid = loadImage("Buttons/off_Grid.png");
-  I_off_Image = loadImage("Buttons/off_Image.png");
-  I_off_Pick_Color = loadImage("Buttons/off_PickColor.png");
-  I_off_PixelMode = loadImage("Buttons/off_PixelMode.png");
-  I_off_Rendering = loadImage("Buttons/off_Rendering.png");
-  I_off_RGB = loadImage("Buttons/off_RGB.png");
-  I_off_XY = loadImage("Buttons/off_XY.png");
-  I_off_Pallet = loadImage("Buttons/off_Pallet.png");
-  I_off_Pencil = loadImage("Buttons/off_Pencil.png");
+  try {
+    I_off_Edit = loadImage("Buttons/off_Edit.png");
+    I_off_Filter = loadImage("Buttons/off_Filter.png");
+    I_off_Grid = loadImage("Buttons/off_Grid.png");
+    I_off_Image = loadImage("Buttons/off_Image.png");
+    I_off_Pick_Color = loadImage("Buttons/off_PickColor.png");
+    I_off_PixelMode = loadImage("Buttons/off_PixelMode.png");
+    I_off_Rendering = loadImage("Buttons/off_Rendering.png");
+    I_off_RGB = loadImage("Buttons/off_RGB.png");
+    I_off_XY = loadImage("Buttons/off_XY.png");
+    I_off_Pallet = loadImage("Buttons/off_Pallet.png");
+    I_off_Pencil = loadImage("Buttons/off_Pencil.png");
 
-  I_on_Edit = loadImage("Buttons/on_Edit.png");
-  I_on_Filter = loadImage("Buttons/on_Filter.png");
-  I_on_Grid = loadImage("Buttons/on_Grid.png");
-  I_on_Image = loadImage("Buttons/on_Image.png");
-  I_on_Pick_Color = loadImage("Buttons/on_PickColor.png");
-  I_on_PixelMode = loadImage("Buttons/on_PixelMode.png");
-  I_on_Rendering = loadImage("Buttons/on_Rendering.png");
-  I_on_RGB = loadImage("Buttons/on_RGB.png");
-  I_on_XY = loadImage("Buttons/on_XY.png");
-  I_on_Pallet = loadImage("Buttons/on_Pallet.png");
-  I_on_Pencil = loadImage("Buttons/on_Pencil.png");
+    I_on_Edit = loadImage("Buttons/on_Edit.png");
+    I_on_Filter = loadImage("Buttons/on_Filter.png");
+    I_on_Grid = loadImage("Buttons/on_Grid.png");
+    I_on_Image = loadImage("Buttons/on_Image.png");
+    I_on_Pick_Color = loadImage("Buttons/on_PickColor.png");
+    I_on_PixelMode = loadImage("Buttons/on_PixelMode.png");
+    I_on_Rendering = loadImage("Buttons/on_Rendering.png");
+    I_on_RGB = loadImage("Buttons/on_RGB.png");
+    I_on_XY = loadImage("Buttons/on_XY.png");
+    I_on_Pallet = loadImage("Buttons/on_Pallet.png");
+    I_on_Pencil = loadImage("Buttons/on_Pencil.png");
 
-  I_BlackAndWhite = loadImage("Buttons/BlackAndWhite.png");
-  I_Blur = loadImage("Buttons/Blur.png");
-  I_Clear_Pallet = loadImage("Buttons/ClearPallet.png");
-  I_Edges = loadImage("Buttons/Edges.png");
-  I_Img_Pallet = loadImage("Buttons/ImgPallet.png");
-  I_Import = loadImage("Buttons/Import.png");
-  I_Match = loadImage("Buttons/Match.png");
-  I_Mirror_h = loadImage("Buttons/Mirror_h.png");
-  I_Mirror_v = loadImage("Buttons/Mirror_v.png");
-  I_Relief = loadImage("Buttons/Relief.png");
-  I_Rotate = loadImage("Buttons/Rotate.png");
-  I_Save = loadImage("Buttons/Save.png");
-  I_Sharpen = loadImage("Buttons/Sharpen.png");
-  I_Sort_Colors = loadImage("Buttons/SortColors.png");
-  I_Switch = loadImage("Buttons/Switch.png");
-  I_Change = loadImage("Buttons/Change.png");
-  println("[loadImages] Loaded Images successfully");
-  } catch(Exception e) {
+    I_BlackAndWhite = loadImage("Buttons/BlackAndWhite.png");
+    I_Blur = loadImage("Buttons/Blur.png");
+    I_Clear_Pallet = loadImage("Buttons/ClearPallet.png");
+    I_Edges = loadImage("Buttons/Edges.png");
+    I_Img_Pallet = loadImage("Buttons/ImgPallet.png");
+    I_Import = loadImage("Buttons/Import.png");
+    I_Match = loadImage("Buttons/Match.png");
+    I_Mirror_h = loadImage("Buttons/Mirror_h.png");
+    I_Mirror_v = loadImage("Buttons/Mirror_v.png");
+    I_Relief = loadImage("Buttons/Relief.png");
+    I_Rotate = loadImage("Buttons/Rotate.png");
+    I_Save = loadImage("Buttons/Save.png");
+    I_Sharpen = loadImage("Buttons/Sharpen.png");
+    I_Sort_Colors = loadImage("Buttons/SortColors.png");
+    I_Switch = loadImage("Buttons/Switch.png");
+    I_Change = loadImage("Buttons/Change.png");
+    println("[loadImages] Loaded Images successfully");
+  }
+  catch(Exception e) {
     println("[loadImages] Error while loading Images: "+e);
   }
 }
@@ -809,28 +882,28 @@ void setHitbox(int lay, boolean b) {
   }
 }
 boolean isInImage() {
+  //drawImage(image, (width/2)+ofset.x+ofsetTemp.x, height/2+ofset.y+ofsetTemp.y, image.width*(zoom/image.height), zoom);
   int w = floor(image.width*(getZoom()/image.height));
   int h = floor(getZoom());
   int pX = floor((width/2)+ofset.x+ofsetTemp.x), pY = floor(height/2+ofset.y+ofsetTemp.y);
   pX = pX-w/2;
   pY = pY-h/2;
-  if (mouseX > pX && mouseX < pX+image.width*(floor(getZoom())/image.height)) {
-    if (mouseY > pY && mouseY < pY+floor(getZoom())) {
+  if (mouseX > pX && mouseX < pX+w) {
+    if (mouseY > pY && mouseY < pY+h) {
       return true;
     }
   }
   return false;
 }
 PVector getCoordinatesInImage(int x, int y) {
-
   if (isInImage()) {
     //drawImage(image, (width/2)+ofset.x+ofsetTemp.x, height/2+ofset.y+ofsetTemp.y, image.width*(zoom/image.height), zoom);
-    int w = floor(image.width*(getZoom()/image.height));
-    int h = floor(getZoom());
-    int pX = floor((width/2)+ofset.x+ofsetTemp.x), pY = floor(height/2+ofset.y+ofsetTemp.y);
+    int w = int(image.width*(getZoom()/image.height));
+    int h = int(getZoom());
+    int pX = int((width/2)+ofset.x+ofsetTemp.x), pY = int(height/2+ofset.y+ofsetTemp.y);
     pX = pX-w/2;
     pY = pY-h/2;
-    return new PVector(floor((x-pX)/(w/image.width)), floor((y-pY)/(h/image.height)));
+    return new PVector(floor((1f*x-pX)/(1f*w/image.width)), floor((1f*y-pY)/(1f*h/image.height)));
   }
   println("[PVector getCoordinatesInImage] Error while calculating position of mouse in the image.");
   return new PVector(0, 0);
@@ -849,29 +922,13 @@ void loadGUI() {
   GUIScaleH = height/1080f;
 
   int i = 0;
-  if (layer == 0) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = (layer == 0) ? 1 : 2;
   b_m_Image = new Button(true, I_on_Image, I_off_Image, false, int(GUIScaleW*10), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), i, false);
-  if (layer == 1) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = (layer == 1) ? 1 : 2;
   b_m_Pallet = new Button(true, I_on_Pallet, I_off_Pallet, false, int(GUIScaleW*120), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), i, false);
-  if (layer == 2) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = (layer == 2) ? 1 : 2;
   b_m_Rendering = new Button(true, I_on_Rendering, I_off_Rendering, false, int(GUIScaleW*230), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), i, false);
-  if (isPencil) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isPencil ? 1 : 2;
   b_Pencil = new Button(true, I_on_Pencil, I_off_Pencil, false, int(GUIScaleW*(width-70)), int(GUIScaleH*(height-127)), int(GUIScaleW * 60), int(GUIScaleH * 38), i, false);
 
   tf_Import = new TextField(Import_0, int(GUIScaleW*20), int(GUIScaleH*50), int(GUIScaleW*200), int(GUIScaleH*60), Import_box_0);
@@ -884,17 +941,9 @@ void loadGUI() {
   b_Save = new Button(true, I_Save, false, int(GUIScaleW*88), int(GUIScaleH*306), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Change = new Button(true, I_Change, false, int(GUIScaleW*88), int(GUIScaleH*425), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
-  if (isFilter) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isFilter ? 1 : 2;
   b_Filter = new Button(true, I_on_Filter, I_off_Filter, false, int(GUIScaleW*1720), int(GUIScaleH*10), int(GUIScaleW * 60), int(GUIScaleH * 38), i, false);
-  if (isEdit) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isEdit ? 1 : 2;
   b_Edit = new Button(true, I_on_Edit, I_off_Edit, false, int(GUIScaleW*1840), int(GUIScaleH*10), int(GUIScaleW * 60), int(GUIScaleH * 38), i, false);
 
   b_Relief = new Button(true, I_Relief, false, int(GUIScaleW*1730), int(GUIScaleH*58), int(GUIScaleW*60), int(GUIScaleH*38), false);
@@ -915,29 +964,13 @@ void loadGUI() {
   b_Switch = new Button(true, I_Switch, false, int(GUIScaleW*(20+75*0)), int(GUIScaleH*(363+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
   //Rendering Layer
-  if (isGrid) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isGrid ? 1 : 2;
   b_Grid = new Button(true, I_on_Grid, I_off_Grid, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
-  if (isPixelMode) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isPixelMode ? 1 : 2;
   b_Pixel_Mode = new Button(true, I_on_PixelMode, I_off_PixelMode, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
-  if (isRGB) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isRGB ? 1 : 2;
   b_RGB = new Button(true, I_on_RGB, I_off_RGB, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
-  if (isXY) {
-    i = 1;
-  } else {
-    i = 2;
-  }
+  i = isXY ? 1 : 2;
   b_XY = new Button(true, I_on_XY, I_off_XY, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
 
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));

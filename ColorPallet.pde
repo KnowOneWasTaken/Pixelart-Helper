@@ -1,6 +1,6 @@
 class ColorPallet {
-  Color[] colors = new Color[31];
-  color[] pallet = new color[31];
+  Color[] colors = new Color[0];
+  color[] pallet = new color[0];
   int displayX, displayY, displayW, displayH;
   int colorPicked = 0;
   float colorWidth;
@@ -31,15 +31,15 @@ class ColorPallet {
       colorHeight = h;
     }
   }
-  
+
   color getPickedColor() {
-    if(isOneColorSelected) {
+    if (isOneColorSelected) {
       return pallet[colorPicked];
     } else {
-      return color(0,0,0,255);
+      return color(0, 0, 0, 255);
     }
   }
-  
+
   void display() {
     if (pallet.length!=0) {
       if (isVertically) {
@@ -82,10 +82,10 @@ class ColorPallet {
         colorPicked = floor((x-displayX)/colorWidth);
       }
     } else {
-      if(isPencil && isOneColorSelected && isInImage()) {
+      if (isPencil && isOneColorSelected && isInImage()) {
         isOneColorSelected = true;
       } else {
-      isOneColorSelected = false;
+        isOneColorSelected = false;
       }
     }
   }
@@ -142,6 +142,27 @@ class ColorPallet {
     }
     colors[colors.length-1] = c;
     pallet[pallet.length-1] = c.getColor();
+    if (isVertically) {
+      colorHeight = ((displayH*1f)/(pallet.length*1f));
+    } else {
+      colorWidth = ((displayW*1f)/(pallet.length*1f));
+    }
+  }
+
+  void addColors(Color[] c) {
+    Color[] cl = colors;
+    color[] pl = pallet;
+    colors = new Color[pallet.length+c.length];
+    pallet = new color[colors.length];
+    for (int i = 0; i < pallet.length-c.length; i++) {
+      colors[i] = cl[i];
+      pallet[i] = pl[i];
+    }
+    for (int i = colors.length-c.length; i < colors.length-1; i++) {
+      colors[i] = c[i-(colors.length-c.length)];
+      pallet[i] = c[i-(colors.length-c.length)].getColor();
+    }
+
     if (isVertically) {
       colorHeight = ((displayH*1f)/(pallet.length*1f));
     } else {

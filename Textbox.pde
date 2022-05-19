@@ -6,7 +6,7 @@ class Textbox {
   color bgC = color(140, 140, 140, 175); //background color
   color fgC = color(0, 0, 0, 175); //foreground color
 
-  boolean BorderEnabled = false;
+  boolean BorderEnabled = true;
   int BorderWeight = 5;
 
   String Text = "";
@@ -32,7 +32,7 @@ class Textbox {
     this.w = w;
     this.h = h;
     textSize = int(GUIScaleW*24);
-    Text = s;
+    replaceText(s);
   }
 
   void replaceText(String s) {
