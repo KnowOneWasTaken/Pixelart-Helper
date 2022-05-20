@@ -15,6 +15,13 @@ class Color { //Class with 3 integer values that describe red, green and blue of
     this.blue = 0;
     maxMin();
   }
+  
+  Color(color c) {
+   red = int(red(c));
+   green = int(green(c));
+   blue = int(blue(c));
+   maxMin();
+  }
 
   color getColor() {
     return color(red, green, blue, 255);

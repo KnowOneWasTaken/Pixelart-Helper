@@ -77,9 +77,19 @@ class ColorPallet {
     if (inPallet(x, y)) {
       isOneColorSelected = true;
       if (isVertically) {
-        colorPicked = floor((y-displayY)/colorHeight);
+        if (colorPicked != floor((y-displayY)/colorHeight)) {
+          colorPicked = floor((y-displayY)/colorHeight);
+        } else {
+          colorPicked = 0;
+          isOneColorSelected = false;
+        }
       } else {
-        colorPicked = floor((x-displayX)/colorWidth);
+        if (colorPicked != floor((x-displayX)/colorWidth)) {
+          colorPicked = floor((x-displayX)/colorWidth);
+        } else {
+          colorPicked = 0;
+          isOneColorSelected = false;
+        }
       }
     } else {
       if (isPencil && isOneColorSelected && isInImage()) {

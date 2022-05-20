@@ -3,9 +3,10 @@ class Filter {
   Filter() {
   }
 
-  PImage applyFilter(PImage img, int[][] matrix, float factor, int w, int h) {
+  PImage applyFilter(PImage img, float[][] matrix, float factor, int w, int h) {
+    PImage img2 = img;
     try {
-      img.loadPixels();
+      img2.loadPixels();
       float red = 0;
       float green = 0;
       float blue = 0;
@@ -30,18 +31,20 @@ class Filter {
               if (pY<0) {
                 pY = pY*-1;
               }
-              red = red + red(img.pixels[getZ(pX, pY, img.width)]*matrix[i+(w/2)][j+(h/2)]);
-              green = green + green(img.pixels[getZ(pX, pY, img.width)]*matrix[i+(w/2)][j+(h/2)]);
-              blue = blue + blue(img.pixels[getZ(pX, pY, img.width)]*matrix[i+(w/2)][j+(h/2)]);
+              red = red + red(img.pixels[getZ(pX, pY, img.width)])*matrix[i+(w/2)][j+(h/2)];
+              green = green + green(img.pixels[getZ(pX, pY, img.width)])*matrix[i+(w/2)][j+(h/2)];
+              blue = blue + blue(img.pixels[getZ(pX, pY, img.width)])*matrix[i+(w/2)][j+(h/2)];
             }
           }
           red = red * factor;
           green = green * factor;
           blue = blue * factor;
-          img.pixels[getZ(x, y, img.width)] = color(red, green, blue);
+          Color c = new Color(color(red,green,blue));
+          img2.pixels[getZ(x, y, img.width)] = color(c.red, c.green, c.blue);
         }
       }
-      img.updatePixels();
+      img2.updatePixels();
+      img = img2;
       return img;
     }
     catch(Exception e) {
@@ -51,7 +54,7 @@ class Filter {
   }
 
   PImage blur(PImage img, int w, int h) {
-    int[][] matrix = new int[w][h];
+    float[][] matrix = new float[w][h];
     for (int i = 0; i < w; i++) {
       for (int j = 0; j < h; j++) {
         matrix[i][j] = 1;
@@ -63,17 +66,49 @@ class Filter {
   PImage edges(PImage img) {
     int w = 3;
     int h = 3;
-    int[][] matrix = new int[w][h];
+    float[][] matrix = new float[w][h];
     matrix[0][0] = -1;
     matrix[1][0] = -1;
     matrix[2][0] = -1;
     matrix[0][1] = -1;
-    matrix[1][1] = 4;
+    matrix[1][1] = 8;
     matrix[2][1] = -1;
     matrix[0][2] = -1;
     matrix[1][2] = -1;
     matrix[2][2] = -1;
     return applyFilter(img, matrix, 0.25f, w, h);
+  }
+
+  PImage sharpen(PImage img) {
+    int w = 3;
+    int h = 3;
+    float[][] matrix = new float[w][h];
+    matrix[0][0] = 0;
+    matrix[1][0] = -1;
+    matrix[2][0] = 0;
+    matrix[0][1] = -1;
+    matrix[1][1] = 4;
+    matrix[2][1] = -1;
+    matrix[0][2] = 0;
+    matrix[1][2] = -1;
+    matrix[2][2] = 0;
+    return applyFilter(img, matrix, 1, w, h);
+  }
+  
+    PImage relief(PImage img) {
+    int w = 3;
+    int h = 3;
+    float[][] matrix = new float[w][h];
+    matrix[0][0] = -2;
+    matrix[1][0] = -1;
+    matrix[2][0] = 0;
+    matrix[0][1] = -1;
+    matrix[1][1] = 1;
+    matrix[2][1] = 1;
+    matrix[0][2] = 0;
+    matrix[1][2] = 1;
+    matrix[2][2] = 2;
+    return applyFilter(img, matrix, 1, w, h);
   }
 
   private int getZ(int x, int y, int pWidth) {

@@ -2,7 +2,7 @@
 
  Author: Philipp Schröder aka KnowOneWasTaken
  Version: 1.0.1
- Last time edited: 19.05.2022
+ Last time edited: 20.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
  
@@ -25,7 +25,7 @@ ColorPicture pixelArray;
 Button b_m_Image, b_m_Pallet, b_m_Rendering; //menue Buttons
 Button b_Pencil; //global Buttons
 Button b_Import, b_Match, b_Save, b_Change, b_Filter, b_Edit; //Buttons for Image-Layer
-Button b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur; //Button for Filters in Image-Layer
+Button b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur, b_Invert; //Button for Filters in Image-Layer
 Button b_Rotate, b_Mirror_h, b_Mirror_v; //Buttons for Edit in Image-Layer
 Button b_Img_Pallet, b_Clear_Pallet, b_Sort_Colors, b_Pick_Color, b_Switch; //Buttons for Pallet-Layer
 Button b_Grid, b_Pixel_Mode, b_RGB, b_XY; //Buttons for Rendering-Layer
@@ -34,7 +34,7 @@ int layer = 0; //int for the shown GUI-Layer: 0 = Image; 1 = Pallet; 2 = Renderi
 
 TextField tf_Import, tf_Save, tf_Change;
 PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_Pick_Color, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_Pick_Color, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY, I_on_Pencil, I_off_Pencil;
-PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change;
+PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change, I_Invert;
 String GUIDebug = "";
 color DebugC = color(0, 255, 0);
 ColorPallet Pallet = new ColorPallet();
@@ -129,6 +129,7 @@ void draw() {
         b_Black_And_White.show2();
         b_Edges.show2();
         b_Blur.show2();
+        b_Invert.show2();
       }
       if (isEdit) {
         b_Rotate.show2();
@@ -182,6 +183,10 @@ void draw() {
     loadGUI();
     oldWidth = width;
     oldHeight = height;
+  }
+
+  if (mousePressed) {
+    mouseIsPressed();
   }
 }
 
@@ -342,6 +347,39 @@ void mousePressed() {
   startOfset = new PVector(mouseX, mouseY);
 }
 
+void mouseIsPressed() {
+  if (isInImage()) {
+    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false&&(key!=' '||keyPressed==false)&&b_Pencil.touch()==false) {
+      try {
+        image.loadPixels();
+        PVector v = getCoordinatesInImage(mouseX, mouseY);
+        image.pixels[int(v.x+v.y*image.width)] = Pallet.getPickedColor();
+        int resolutionHighRes = int((1f/image.width)*1600); //calculates and stores the width and height of one pixel in highRes-Image
+        //PGraphics pg;
+        //pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
+        //pg.beginDraw();
+        //pg.image(highRes,0,0);
+        //pg.fill(Pallet.getPickedColor());
+        //pg.noStroke();
+        //pg.rect(int(v.x*resolutionHighRes),int(v.y*resolutionHighRes),resolutionHighRes,resolutionHighRes);
+        //pg.endDraw();
+        //highRes = pg;
+        highRes.loadPixels();
+        for (int i = 0; i < resolutionHighRes; i++) { //draws changed Pixel onto highRes-Image
+          for (int j = 0; j <  resolutionHighRes; j++) {
+            highRes.pixels[int(v.x*resolutionHighRes+v.y*image.width*resolutionHighRes*resolutionHighRes)+i*resolutionHighRes*image.width+j] = Pallet.getPickedColor();
+          }
+        }
+        highRes.updatePixels();
+        //thread("createHighRes");
+      }
+      catch(Exception e) {
+        println("[mouseReleased] Error while painting on Image: "+e);
+      }
+    }
+  }
+}
+
 void keyPressed() {
   //box.KeyPressed(key, keyCode);
   //saveBox.KeyPressed(key, keyCode);
@@ -350,7 +388,7 @@ void keyPressed() {
   tf_Import.txtBox.KeyPressed(key, keyCode);
   tf_Save.txtBox.KeyPressed(key, keyCode);
   tf_Change.txtBox.KeyPressed(key, keyCode);
-  startOfset = new PVector(mouseX, mouseY);
+  //startOfset = new PVector(mouseX, mouseY);
   if (key == DELETE) {
     if (Pallet.isOneColorSelected) {
       Pallet.deleteColor(Pallet.colorPicked);
@@ -363,6 +401,10 @@ void mouseDragged() {
 
   //every frame the mouse gets dragged, a temporary offset gets calculated to add it to offset after mouse gets released
   //if (s.selected == false && submit.touch() == false && submit2.touch() == false && match.touch() == false) {
+  if (mousePressed && isPencil && Pallet.isOneColorSelected) {
+    startOfset = new PVector(mouseX, mouseY);
+    ofsetTemp = new PVector(0, 0);
+  }
   if (s.selected == false && ((isPencil && Pallet.isOneColorSelected && isInImage()) == false || (key == ' ' && keyPressed))) {
     ofsetTemp = new PVector((mouseX-startOfset.x), (mouseY-startOfset.y));
   }
@@ -393,34 +435,6 @@ void mouseReleased() {
       }
       catch(Exception e) {
         println("[mouseReleased] Error while adding picked Color of Image: "+e);
-      }
-    }
-    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false&&(key!=' '||keyPressed==false)&&b_Pencil.touch()==false) {
-      try {
-        image.loadPixels();
-        PVector v = getCoordinatesInImage(mouseX, mouseY);
-        image.pixels[int(v.x+v.y*image.width)] = Pallet.getPickedColor();
-        int resolutionHighRes = int((1f/image.width)*1600); //calculates and stores the width and height of one pixel in highRes-Image
-        //PGraphics pg;
-        //pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
-        //pg.beginDraw();
-        //pg.image(highRes,0,0);
-        //pg.fill(Pallet.getPickedColor());
-        //pg.noStroke();
-        //pg.rect(int(v.x*resolutionHighRes),int(v.y*resolutionHighRes),resolutionHighRes,resolutionHighRes);
-        //pg.endDraw();
-        //highRes = pg;
-        highRes.loadPixels();
-        for (int i = 0; i < resolutionHighRes; i++) { //draws changed Pixel onto highRes-Image
-          for (int j = 0; j <  resolutionHighRes; j++) {
-            highRes.pixels[int(v.x*resolutionHighRes+v.y*image.width*resolutionHighRes*resolutionHighRes)+i*resolutionHighRes*image.width+j] = Pallet.getPickedColor();
-          }
-        }
-        highRes.updatePixels();
-        //thread("createHighRes");
-      }
-      catch(Exception e) {
-        println("[mouseReleased] Error while painting on Image: "+e);
       }
     }
   }
@@ -570,17 +584,20 @@ void mouseReleased() {
 
 
     if (b_Relief.touch() && mouseButton == LEFT) { //[Filter Buttons]
-      //[ni]
+      image = Filter.relief(image);
+      thread("createHighRes");
     }
 
 
     if (b_Sharpen.touch() && mouseButton == LEFT) {
-      //[ni]
+      image = Filter.sharpen(image);
+      thread("createHighRes");
     }
 
 
     if (b_Black_And_White.touch() && mouseButton == LEFT) {
-      //[ni]
+      image.filter(GRAY);
+      thread("createHighRes");
     }
 
 
@@ -594,20 +611,54 @@ void mouseReleased() {
       thread("createHighRes");
     }
 
+    if (b_Invert.touch() && mouseButton == LEFT) {
+      image.filter(INVERT);
+      thread("createHighRes");
+    }
 
 
     if (b_Rotate.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      //[ni]
+      PImage img2 = image;
+      image = new PImage(image.height, image.width);
+      img2.loadPixels();
+      image.loadPixels();
+      for (int y = 0; y < img2.height; y++) {
+        for (int x = 0; x < img2.width; x++) {
+          image.pixels[x+img2.width*y] = img2.pixels[(img2.height-y-1)+img2.height*x];
+        }
+      }
+      image.updatePixels();
+      thread("createHighRes");
     }
 
 
     if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      //[ni]
+      PImage img2 = image;
+      image = new PImage(image.width, image.height);
+      img2.loadPixels();
+      image.loadPixels();
+      for (int y = 0; y < img2.height; y++) {
+        for (int x = 0; x < img2.width; x++) {
+          image.pixels[x+img2.width*y] = img2.pixels[img2.width*y+(img2.width-1-x)];
+        }
+      }
+      image.updatePixels();
+      thread("createHighRes");
     }
 
 
     if (b_Mirror_h.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      //[ni]
+      PImage img2 = image;
+      image = new PImage(image.width, image.height);
+      img2.loadPixels();
+      image.loadPixels();
+      for (int y = 0; y < img2.height; y++) {
+        for (int x = 0; x < img2.width; x++) {
+          image.pixels[x+img2.width*y] = img2.pixels[x+img2.width*(img2.height-1-y)];
+        }
+      }
+      image.updatePixels();
+      thread("createHighRes");
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
@@ -760,27 +811,32 @@ void drawImage(PImage img, float x, float y, float w, float h) {
 }
 
 void createHighRes() {
-  int resolutionHighRes = int((1f/image.width)*1600);
-  PGraphics pg;
-  pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
-  pg.beginDraw();
-  pg.image(image, 0, 0, image.width*resolutionHighRes, image.height*resolutionHighRes);
-  image.loadPixels();
-  pg.noStroke();
-  for (int i = 0; i < image.height; i++) {
-    for (int j = 0; j < image.width; j++) {
-      pg.fill(image.pixels[i*image.width+j]);
-      pg.rect(j*(image.width*resolutionHighRes/image.width), i*(image.height*resolutionHighRes/image.height), (image.width*resolutionHighRes/image.width), (image.height*resolutionHighRes/image.height));
-      //fill(255-floor(((i*image.width+j)/((image.height*image.width)*1f))*255f), floor(((i*image.width+j)/((image.height*image.width)*1f))*100f), 0);
-      loading = "Create high-resolution Image: "+floor(((i*image.width+j)/((image.height*image.width)*1f))*100f)+"%";
+  try {
+    int resolutionHighRes = int((1f/image.width)*1600);
+    PGraphics pg;
+    pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
+    pg.beginDraw();
+    pg.image(image, 0, 0, image.width*resolutionHighRes, image.height*resolutionHighRes);
+    image.loadPixels();
+    pg.noStroke();
+    for (int i = 0; i < image.height; i++) {
+      for (int j = 0; j < image.width; j++) {
+        pg.fill(image.pixels[i*image.width+j]);
+        pg.rect(j*(image.width*resolutionHighRes/image.width), i*(image.height*resolutionHighRes/image.height), (image.width*resolutionHighRes/image.width), (image.height*resolutionHighRes/image.height));
+        //fill(255-floor(((i*image.width+j)/((image.height*image.width)*1f))*255f), floor(((i*image.width+j)/((image.height*image.width)*1f))*100f), 0);
+        loading = "Create high-resolution Image: "+floor(((i*image.width+j)/((image.height*image.width)*1f))*100f)+"%";
+      }
     }
-  }
-  pg.endDraw();
+    pg.endDraw();
 
-  highRes = pg;
-  image.save("auto save/last_session_"+day()+"."+month()+"."+year()+"_"+hour()+".png");
-  println("Created High-Resolution Image");
-  loading="";
+    highRes = pg;
+    image.save(savePath("auto save/last_session_"+day()+"."+month()+"."+year()+"_"+hour()+".png"));
+    println("Created High-Resolution Image");
+    loading="";
+  }
+  catch(Exception e) {
+    println("[createHighRes] Error while creating a highRes-Image: "+e);
+  }
 }
 
 void loadImages() {
@@ -822,6 +878,7 @@ void loadImages() {
     I_Rotate = loadImage("Buttons/Rotate.png");
     I_Save = loadImage("Buttons/Save.png");
     I_Sharpen = loadImage("Buttons/Sharpen.png");
+    I_Invert = loadImage("Buttons/Invert.png");
     I_Sort_Colors = loadImage("Buttons/SortColors.png");
     I_Switch = loadImage("Buttons/Switch.png");
     I_Change = loadImage("Buttons/Change.png");
@@ -839,6 +896,7 @@ void setHitbox(int lay, boolean b) {
     b_Black_And_White.setHitbox(b);
     b_Edges.setHitbox(b);
     b_Blur.setHitbox(b);
+    b_Invert.setHitbox(b);
 
     b_Rotate.setHitbox(b);
     b_Mirror_v.setHitbox(b);
@@ -874,6 +932,7 @@ void setHitbox(int lay, boolean b) {
     b_Black_And_White.setHitbox(b);
     b_Edges.setHitbox(b);
     b_Blur.setHitbox(b);
+    b_Invert.setHitbox(b);
   }
   if (lay == -2) {//Edit
     b_Rotate.setHitbox(b);
@@ -951,6 +1010,7 @@ void loadGUI() {
   b_Black_And_White = new Button(true, I_BlackAndWhite, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*2)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Edges = new Button(true, I_Edges, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Blur = new Button(true, I_Blur, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*4)), int(GUIScaleW*60), int(GUIScaleH*38), false);
+  b_Invert = new Button(true, I_Invert, false, int(GUIScaleW*1730), int(GUIScaleH*(60+48*5)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
   b_Rotate = new Button(true, I_Rotate, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*0)), int(GUIScaleW*60), int(GUIScaleH*38), false);
   b_Mirror_v = new Button(true, I_Mirror_v, false, int(GUIScaleW*1850), int(GUIScaleH*(60+48*1)), int(GUIScaleW*60), int(GUIScaleH*38), false);
