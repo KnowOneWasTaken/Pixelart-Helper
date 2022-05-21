@@ -1,8 +1,8 @@
 /* //<>//
 
  Author: Philipp Schröder aka KnowOneWasTaken
- Version: 1.0.1
- Last time edited: 20.05.2022
+ Version: 1.0.2
+ Last time edited: 21.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
  
@@ -73,9 +73,23 @@ void setup() {
   image = createImage(10, 10, RGB);
   loadImages(); //loads all necessary Images
 
+  try {
+    image = loadImage("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png");
+    if (image != null) {
+      thread("updateHighRes");
+    } else {
+      image = createImage(10, 10, RGB);
+      thread("updateHighRes");
+    }
+  }
+  catch(Exception e) {
+    println("[Setup] Error while loading last sessions Image: "+e);
+    image = createImage(10, 10, RGB);
+  }
   loadGUI();
+
   s.scale = 0.125;
-  createHighRes();
+  updateHighRes();
   oldWidth = width;
   oldHeight = height;
 }
@@ -322,7 +336,7 @@ float getCDistance(Color c1, Color c2) {
 //Function to make matchPicture to a thread (gets called as a thread)
 void matchP() {
   image = matchPicture(image, Pallet.colors);
-  thread("createHighRes");
+  thread("updateHighRes");
   DebugC = color(0, 255, 0);
   textSize(24*GUIScaleW);
   GUIDebug = "Successfully matched Picture with pallet";
@@ -371,7 +385,8 @@ void mouseIsPressed() {
           }
         }
         highRes.updatePixels();
-        //thread("createHighRes");
+        image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
+        //thread("updateHighRes");
       }
       catch(Exception e) {
         println("[mouseReleased] Error while painting on Image: "+e);
@@ -528,7 +543,7 @@ void mouseReleased() {
         //}
         DebugC = color(0, 255, 0);
         GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
-        thread("createHighRes");
+        thread("updateHighRes");
         println("Picture successfully loaded: "+tf_Import.txtBox.Text);
       }
       catch(Exception e) {
@@ -545,10 +560,29 @@ void mouseReleased() {
 
 
     if (b_Save.touch()&&mouseButton==LEFT) {
-      image.save("saved Images/"+tf_Save.txtBox.Text+".png");
-      DebugC = color(0, 255, 0);
-      GUIDebug = "Successfully stored Picture as: "+tf_Save.txtBox.Text+".png";
-      println("Picture successfully saved: "+tf_Save.txtBox.Text+".png");
+      try {
+        image.save("saved Images/"+tf_Save.txtBox.Text+".png");
+        highRes.save("saved Images/"+tf_Save.txtBox.Text+"-HighRes.png");
+        if (isGrid || isRGB || isXY) {
+          PGraphics pg = createGraphics(highRes.width, highRes.height);
+          pg.beginDraw();
+          pg.image(highRes, 0, 0);
+          if (isGrid) {
+            pg.image(drawGrid(image, highRes.width, highRes.height), 0, 0);
+          }
+          if (isXY || isRGB) {
+            pg.image(drawXYRGB(image, highRes.width, highRes.height), 0, 0);
+          }
+          pg.endDraw();
+          pg.save("saved Images/"+tf_Save.txtBox.Text+"-HighRes-Render.png");
+        }
+        DebugC = color(0, 255, 0);
+        GUIDebug = "Successfully stored Picture as: "+tf_Save.txtBox.Text+".png";
+        println("[MouseReleased] [layer==1] Picture successfully saved: "+tf_Save.txtBox.Text+".png");
+      }
+      catch(Exception e) {
+        println("[MouseReleased] [layer==1] Error while saving Image: "+e);
+      }
     }
 
 
@@ -585,35 +619,35 @@ void mouseReleased() {
 
     if (b_Relief.touch() && mouseButton == LEFT) { //[Filter Buttons]
       image = Filter.relief(image);
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
 
     if (b_Sharpen.touch() && mouseButton == LEFT) {
       image = Filter.sharpen(image);
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
 
     if (b_Black_And_White.touch() && mouseButton == LEFT) {
       image.filter(GRAY);
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
 
     if (b_Edges.touch() && mouseButton == LEFT) {
       image = Filter.edges(image);
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
     if (b_Blur.touch() && mouseButton == LEFT) {
       image = Filter.blur(image, 3, 3);
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
     if (b_Invert.touch() && mouseButton == LEFT) {
       image.filter(INVERT);
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
 
@@ -628,7 +662,7 @@ void mouseReleased() {
         }
       }
       image.updatePixels();
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
 
@@ -643,7 +677,7 @@ void mouseReleased() {
         }
       }
       image.updatePixels();
-      thread("createHighRes");
+      thread("updateHighRes");
     }
 
 
@@ -658,7 +692,7 @@ void mouseReleased() {
         }
       }
       image.updatePixels();
-      thread("createHighRes");
+      thread("updateHighRes");
     }
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
@@ -763,6 +797,8 @@ void drawImage(PImage img, float x, float y, float w, float h) {
   }
   catch(Exception e) {
     println("[drawImage] Error while drawing Images [1]: "+e);
+    println("[drawImage] highRes = "+highRes);
+    println("[drawImage] img = "+img + "; width = "+img.width+"; height = "+img.height);
   }
   try {
     x=x-w/2;
@@ -777,6 +813,7 @@ void drawImage(PImage img, float x, float y, float w, float h) {
       for (int i = 1; i < img.width; i++) {
         line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
       }
+      //image(drawGrid(img, w, h), x, y, w, h);
     }
     ColorPicture CP = new ColorPicture(img);
     if (isXY||isRGB) {
@@ -810,7 +847,65 @@ void drawImage(PImage img, float x, float y, float w, float h) {
   }
 }
 
-void createHighRes() {
+PImage drawGrid(PImage img, float w, float h) {
+  try {
+    PGraphics pg = createGraphics(int(w), int(h));
+    pg.beginDraw();
+    pg.strokeWeight(0.5);
+    pg.stroke(0);
+    pg.fill(0);
+    for (int i = 1; i < img.width; i++) {
+      pg.line(i*(w/img.width), 0, i*(w/img.width), h);
+    }
+    for (int i = 1; i < img.width; i++) {
+      pg.line(0, i*(h/img.height), w, i*(h/img.height));
+    }
+    PImage img2 = pg;
+    pg.endDraw();
+    return img2;
+  }
+  catch(Exception e) {
+    println("[drawGrid] Error while creating Grid-Image: "+e);
+    PGraphics pg = createGraphics(int(w), int(h));
+    pg.image(img, pg.width, pg.height);
+    PImage img2 = pg;
+    return img2;
+  }
+}
+
+PImage drawXYRGB(PImage img, float w, float h) {
+  ColorPicture CP = new ColorPicture(img);
+  PGraphics pg = createGraphics(int(w), int(h));
+  if (isXY || isRGB) {
+    pg.beginDraw();
+    for (int j = 0; j < img.height; j++) {
+      for (int i = 0; i < img.width; i++) {
+        color c = CP.getC(i, j).getColor();
+        if (brightness(c)>128) {
+          pg.fill(0);
+        } else {
+          pg.fill(255);
+        }
+        if (isXY) {
+          pg.textAlign(CORNER);
+          pg.textSize((w/img.width)/5);
+          pg.text(i+";"+j, i*(w/img.width), j*(w/img.height)+(w/img.width)/5);
+        }
+        if (isRGB) {
+          pg.textSize((w/img.width)/7);
+          pg.textAlign(CENTER);
+          pg.text(int(red(c)), i*(w/img.width)+(w/img.width)/2, j*(w/img.height)+(w/img.width)/2);
+          pg.text(int(green(c)), i*(w/img.width)+(w/img.width)/2, j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
+          pg.text(int(blue(c)), i*(w/img.width)+(w/img.width)/2, j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
+        }
+      }
+    }
+    pg.endDraw();
+  }
+  return pg;
+}
+
+void updateHighRes() {
   try {
     int resolutionHighRes = int((1f/image.width)*1600);
     PGraphics pg;
@@ -830,7 +925,7 @@ void createHighRes() {
     pg.endDraw();
 
     highRes = pg;
-    image.save(savePath("auto save/last_session_"+day()+"."+month()+"."+year()+"_"+hour()+".png"));
+    image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
     println("Created High-Resolution Image");
     loading="";
   }
