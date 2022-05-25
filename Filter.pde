@@ -39,7 +39,7 @@ class Filter {
           red = red * factor;
           green = green * factor;
           blue = blue * factor;
-          Color c = new Color(color(red,green,blue));
+          Color c = new Color(color(red, green, blue));
           img2.pixels[getZ(x, y, img.width)] = color(c.red, c.green, c.blue);
         }
       }
@@ -94,8 +94,8 @@ class Filter {
     matrix[2][2] = 0;
     return applyFilter(img, matrix, 1, w, h);
   }
-  
-    PImage relief(PImage img) {
+
+  PImage relief(PImage img) {
     int w = 3;
     int h = 3;
     float[][] matrix = new float[w][h];
@@ -109,6 +109,58 @@ class Filter {
     matrix[1][2] = 1;
     matrix[2][2] = 2;
     return applyFilter(img, matrix, 1, w, h);
+  }
+
+  PImage Black_And_White(PImage img) {
+    img.filter(GRAY);
+    return img;
+  }
+
+  PImage Invert(PImage img) {
+    img.filter(INVERT);
+    return img;
+  }
+
+  PImage Rotate(PImage img) {
+    PImage img2 = img;
+    img = new PImage(img.height, img.width);
+    img2.loadPixels();
+    img.loadPixels();
+    for (int y = 0; y < img2.height; y++) {
+      for (int x = 0; x < img2.width; x++) {
+        img.pixels[x+img2.width*y] = img2.pixels[(img2.height-y-1)+img2.height*x];
+      }
+    }
+    img.updatePixels();
+    return img;
+  }
+
+  PImage Mirror_v(PImage img) {
+    PImage img2 = img;
+    img = new PImage(img.width, img.height);
+    img2.loadPixels();
+    img.loadPixels();
+    for (int y = 0; y < img2.height; y++) {
+      for (int x = 0; x < img2.width; x++) {
+        img.pixels[x+img2.width*y] = img2.pixels[img2.width*y+(img2.width-1-x)];
+      }
+    }
+    img.updatePixels();
+    return img;
+  }
+
+  PImage Mirror_h(PImage img) {
+    PImage img2 = img;
+    img = new PImage(img.width, img.height);
+    img2.loadPixels();
+    img.loadPixels();
+    for (int y = 0; y < img2.height; y++) {
+      for (int x = 0; x < img2.width; x++) {
+        img.pixels[x+img2.width*y] = img2.pixels[x+img2.width*(img2.height-1-y)];
+      }
+    }
+    img.updatePixels();
+    return img;
   }
 
   private int getZ(int x, int y, int pWidth) {

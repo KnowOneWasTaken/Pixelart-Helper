@@ -61,6 +61,7 @@ PImage highRes;//, highResXY, highResRGB
 int oldWidth;
 int oldHeight;
 Filter Filter = new Filter();
+boolean touchGUI = false;
 //int resolutionHighRes = 50; //resolution of the highRes image (one pixel width and height
 
 void setup() {
@@ -74,7 +75,7 @@ void setup() {
   loadImages(); //loads all necessary Images
 
   try {
-    image = loadImage("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png");
+    image = loadImage("auto save/last_session.png");
     if (image != null) {
       thread("updateHighRes");
     } else {
@@ -97,6 +98,8 @@ void setup() {
 void draw() {
   background(17);
   imageMode(CENTER);
+
+  setTouchGUI();
 
   try {
     float zoom = getZoom();
@@ -344,17 +347,10 @@ void matchP() {
 }
 
 void mousePressed() {
-  //box.pressed(mouseX, mouseY);
-  //saveBox.pressed(mouseX, mouseY);
-  //palletBox.pressed(mouseX, mouseY);
-  //palletSave.pressed(mouseX, mouseY);
-  if (layer == 1 || layer == 0) {
-    tf_Import.pressed(mouseX, mouseY);
-    tf_Save.pressed(mouseX, mouseY);
-    if (layer == 0) {
-      tf_Change.pressed(mouseX, mouseY);
-    }
-  }
+  tf_Import.pressed(mouseX, mouseY);
+  tf_Save.pressed(mouseX, mouseY);
+  tf_Change.pressed(mouseX, mouseY);
+
   s.Pressed();
 
   //every frame the mouse is pressed, the coordinates of the mouse get stored to calculate the offset while grabbing
@@ -363,47 +359,36 @@ void mousePressed() {
 
 void mouseIsPressed() {
   if (isInImage()) {
-    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false&&(key!=' '||keyPressed==false)&&b_Pencil.touch()==false) {
-      try {
-        image.loadPixels();
-        PVector v = getCoordinatesInImage(mouseX, mouseY);
-        image.pixels[int(v.x+v.y*image.width)] = Pallet.getPickedColor();
-        int resolutionHighRes = int((1f/image.width)*1600); //calculates and stores the width and height of one pixel in highRes-Image
-        //PGraphics pg;
-        //pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
-        //pg.beginDraw();
-        //pg.image(highRes,0,0);
-        //pg.fill(Pallet.getPickedColor());
-        //pg.noStroke();
-        //pg.rect(int(v.x*resolutionHighRes),int(v.y*resolutionHighRes),resolutionHighRes,resolutionHighRes);
-        //pg.endDraw();
-        //highRes = pg;
-        highRes.loadPixels();
-        for (int i = 0; i < resolutionHighRes; i++) { //draws changed Pixel onto highRes-Image
-          for (int j = 0; j <  resolutionHighRes; j++) {
-            highRes.pixels[int(v.x*resolutionHighRes+v.y*image.width*resolutionHighRes*resolutionHighRes)+i*resolutionHighRes*image.width+j] = Pallet.getPickedColor();
+    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false&&(key!=' '||keyPressed==false)&& touchGUI == false && s.selected == false) {
+      if (touchGUI == false) {
+        try {
+          image.loadPixels();
+          PVector v = getCoordinatesInImage(mouseX, mouseY);
+          image.pixels[int(v.x+v.y*image.width)] = Pallet.getPickedColor();
+          int resolutionHighRes = int((1f/image.width)*1600); //calculates and stores the width and height of one pixel in highRes-Image
+          highRes.loadPixels();
+          for (int i = 0; i < resolutionHighRes; i++) { //draws changed Pixel onto highRes-Image
+            for (int j = 0; j <  resolutionHighRes; j++) {
+              highRes.pixels[int(v.x*resolutionHighRes+v.y*image.width*resolutionHighRes*resolutionHighRes)+i*resolutionHighRes*image.width+j] = Pallet.getPickedColor();
+            }
           }
+          highRes.updatePixels();
+          image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
+          image.save(savePath("auto save/last_session.png"));
+          //thread("updateHighRes");
         }
-        highRes.updatePixels();
-        image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
-        //thread("updateHighRes");
-      }
-      catch(Exception e) {
-        println("[mouseReleased] Error while painting on Image: "+e);
+        catch(Exception e) {
+          println("[mouseReleased] Error while painting on Image: "+e);
+        }
       }
     }
   }
 }
 
 void keyPressed() {
-  //box.KeyPressed(key, keyCode);
-  //saveBox.KeyPressed(key, keyCode);
-  //palletBox.KeyPressed(key, keyCode);
-  //palletSave.KeyPressed(key, keyCode);
   tf_Import.txtBox.KeyPressed(key, keyCode);
   tf_Save.txtBox.KeyPressed(key, keyCode);
   tf_Change.txtBox.KeyPressed(key, keyCode);
-  //startOfset = new PVector(mouseX, mouseY);
   if (key == DELETE) {
     if (Pallet.isOneColorSelected) {
       Pallet.deleteColor(Pallet.colorPicked);
@@ -587,7 +572,15 @@ void mouseReleased() {
 
 
     if (b_Change.touch() && mouseButton == LEFT) {
-      //[ni]
+      String s = tf_Change.txtBox.Text;
+      int w = int(s.substring(0, s.indexOf(";")));
+      int h = int(s.substring(s.indexOf(";")+1, s.length()));
+      PGraphics pg = createGraphics(w, h);
+      pg.beginDraw();
+      pg.image(highRes, 0, 0, w, h);
+      pg.endDraw();
+      image = pg;
+      updateHighRes();
     }
 
 
@@ -630,7 +623,7 @@ void mouseReleased() {
 
 
     if (b_Black_And_White.touch() && mouseButton == LEFT) {
-      image.filter(GRAY);
+      image = Filter.Black_And_White(image);
       thread("updateHighRes");
     }
 
@@ -646,52 +639,25 @@ void mouseReleased() {
     }
 
     if (b_Invert.touch() && mouseButton == LEFT) {
-      image.filter(INVERT);
+      image = Filter.Invert(image);
       thread("updateHighRes");
     }
 
 
     if (b_Rotate.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      PImage img2 = image;
-      image = new PImage(image.height, image.width);
-      img2.loadPixels();
-      image.loadPixels();
-      for (int y = 0; y < img2.height; y++) {
-        for (int x = 0; x < img2.width; x++) {
-          image.pixels[x+img2.width*y] = img2.pixels[(img2.height-y-1)+img2.height*x];
-        }
-      }
-      image.updatePixels();
+      image = Filter.Rotate(image);
       thread("updateHighRes");
     }
 
 
     if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      PImage img2 = image;
-      image = new PImage(image.width, image.height);
-      img2.loadPixels();
-      image.loadPixels();
-      for (int y = 0; y < img2.height; y++) {
-        for (int x = 0; x < img2.width; x++) {
-          image.pixels[x+img2.width*y] = img2.pixels[img2.width*y+(img2.width-1-x)];
-        }
-      }
-      image.updatePixels();
+      image = Filter.Mirror_v(image);
       thread("updateHighRes");
     }
 
 
     if (b_Mirror_h.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      PImage img2 = image;
-      image = new PImage(image.width, image.height);
-      img2.loadPixels();
-      image.loadPixels();
-      for (int y = 0; y < img2.height; y++) {
-        for (int x = 0; x < img2.width; x++) {
-          image.pixels[x+img2.width*y] = img2.pixels[x+img2.width*(img2.height-1-y)];
-        }
-      }
-      image.updatePixels();
+      image = Filter.Mirror_h(image);
       thread("updateHighRes");
     }
   }
@@ -926,7 +892,7 @@ void updateHighRes() {
 
     highRes = pg;
     image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
-    println("Created High-Resolution Image");
+    image.save(savePath("auto save/last_session.png"));
     loading="";
   }
   catch(Exception e) {
@@ -1004,7 +970,12 @@ void setHitbox(int lay, boolean b) {
     b_Change.setHitbox(b);
     b_Save.setHitbox(b);
     b_Import.setHitbox(b);
+
+    tf_Import.setHitbox(b);
+    tf_Save.setHitbox(b);
+    tf_Change.setHitbox(b);
   }
+
   if (lay == 1) {
     b_Import.setHitbox(b);
     b_Img_Pallet.setHitbox(b);
@@ -1013,6 +984,8 @@ void setHitbox(int lay, boolean b) {
     b_Sort_Colors.setHitbox(b);
     b_Pick_Color.setHitbox(b);
     b_Switch.setHitbox(b);
+    tf_Import.setHitbox(b);
+    tf_Save.setHitbox(b);
   }
   if (lay == 2) {
     b_Grid.setHitbox(b);
@@ -1131,4 +1104,58 @@ void loadGUI() {
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
   loadPallet("colors.csv");
   println("[loadGUI] Loaded GUI");
+}
+
+void setTouchGUI() {
+  touchGUI = false;
+
+  Button[] b = new Button[28];
+  b[0] = b_m_Image;
+  b[1] = b_m_Pallet;
+  b[2] = b_m_Rendering;
+  b[3] = b_Pencil;
+  b[4] = b_Import;
+  b[5] = b_Match;
+  b[6] = b_Save;
+  b[7] = b_Change;
+  b[8] = b_Filter;
+  b[9] = b_Edit;
+  b[10] = b_Relief;
+  b[11] = b_Sharpen;
+  b[12] = b_Black_And_White;
+  b[13] = b_Edges;
+  b[14] = b_Blur;
+  b[15] = b_Invert;
+  b[16] = b_Rotate;
+  b[17] = b_Mirror_h;
+  b[18] = b_Mirror_v;
+  b[19] = b_Img_Pallet;
+  b[20] = b_Clear_Pallet;
+  b[21] = b_Sort_Colors;
+  b[22] = b_Pick_Color;
+  b[23] = b_Switch;
+  b[24] = b_Grid;
+  b[25] = b_Pixel_Mode;
+  b[26] = b_RGB;
+  b[27] = b_XY;
+
+  TextField[] tf = new TextField[3];
+  tf[0] = tf_Import;
+  tf[1] = tf_Save;
+  tf[2] = tf_Change;
+
+  for (Button bn : b) {
+    if (bn.touch()) {
+      touchGUI = true;
+    }
+  }
+  for (TextField tfn : tf) {
+    if (tfn.touch()) {
+      touchGUI = true;
+    }
+  }
+
+  if (s.touch()) {
+    touchGUI = true;
+  }
 }

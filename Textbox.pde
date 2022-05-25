@@ -218,7 +218,7 @@ class Textbox {
     }
   }
 
-  private boolean overBox(int mX, int mY) {
+  boolean overBox(int mX, int mY) {
     if (mX >= x && mX <= x + w) {
       if (mY >= y && mY <= y + h) {
         return true;

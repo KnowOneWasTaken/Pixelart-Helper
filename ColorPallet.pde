@@ -92,7 +92,7 @@ class ColorPallet {
         }
       }
     } else {
-      if (isPencil && isOneColorSelected && isInImage()) {
+      if ((isOneColorSelected && isInImage()) || (touchGUI && isOneColorSelected)) {
         isOneColorSelected = true;
       } else {
         isOneColorSelected = false;

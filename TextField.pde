@@ -2,6 +2,7 @@ class TextField {
   Textbox txtBox;
   String text;
   int x, y, w, h;
+  private boolean hitbox = true;
   TextField(String text, int x, int y, int w, int h) {
     this.text = text;
     this.x = x;
@@ -31,6 +32,24 @@ class TextField {
   }
 
   void pressed(int mX, int mY) {
-    txtBox.pressed(mX, mY);
+    if (hitbox) {
+      txtBox.pressed(mX, mY);
+    }
+  }
+  
+  void setHitbox(boolean b) {
+    hitbox = b;
+  }
+  
+  boolean getHitbox() {
+    return hitbox;
+  }
+  
+  boolean touch() {
+   if(hitbox && txtBox.overBox(mouseX, mouseY)) {
+     return true;
+   } else {
+    return false; 
+   }
   }
 }
