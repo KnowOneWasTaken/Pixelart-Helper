@@ -3,7 +3,7 @@ class Slider {
   PImage bg, off, on;
   boolean selected, useBG, useB, pressed; //useBG: says if a Background-image is used
   float scale;
-  float step = 0.001920;
+  float step = 0.00092;
 
   Slider(int x, int y) {
     this.x=x;

@@ -1,8 +1,8 @@
 /* //<>//
 
  Author: Philipp Schröder aka KnowOneWasTaken
- Version: 1.0.2
- Last time edited: 21.05.2022
+ Version: 1.0.3
+ Last time edited: 26.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
  
@@ -23,7 +23,7 @@ PImage image = new PImage();
 Table colorTable = new Table();
 ColorPicture pixelArray;
 Button b_m_Image, b_m_Pallet, b_m_Rendering; //menue Buttons
-Button b_Pencil; //global Buttons
+Button b_Pencil, b_Back; //global Buttons
 Button b_Import, b_Match, b_Save, b_Change, b_Filter, b_Edit; //Buttons for Image-Layer
 Button b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur, b_Invert; //Button for Filters in Image-Layer
 Button b_Rotate, b_Mirror_h, b_Mirror_v; //Buttons for Edit in Image-Layer
@@ -34,7 +34,7 @@ int layer = 0; //int for the shown GUI-Layer: 0 = Image; 1 = Pallet; 2 = Renderi
 
 TextField tf_Import, tf_Save, tf_Change;
 PImage I_off_Edit, I_off_Filter, I_off_Grid, I_off_Image, I_off_Pallet, I_off_Pick_Color, I_off_PixelMode, I_off_Rendering, I_off_RGB, I_off_XY, I_on_Edit, I_on_Filter, I_on_Grid, I_on_Image, I_on_Pallet, I_on_Pick_Color, I_on_PixelMode, I_on_Rendering, I_on_RGB, I_on_XY, I_on_Pencil, I_off_Pencil;
-PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change, I_Invert;
+PImage I_BlackAndWhite, I_Blur, I_Clear_Pallet, I_Edges, I_Img_Pallet, I_Match, I_Mirror_h, I_Mirror_v, I_Relief, I_Rotate, I_Save, I_Sharpen, I_Sort_Colors, I_Import, I_Switch, I_Change, I_Invert, I_Back;
 String GUIDebug = "";
 color DebugC = color(0, 255, 0);
 ColorPallet Pallet = new ColorPallet();
@@ -62,6 +62,8 @@ int oldWidth;
 int oldHeight;
 Filter Filter = new Filter();
 boolean touchGUI = false;
+ArrayList<PImage> history = new ArrayList<PImage>();
+boolean offSet = false;
 //int resolutionHighRes = 50; //resolution of the highRes image (one pixel width and height
 
 void setup() {
@@ -128,6 +130,7 @@ void draw() {
     b_m_Pallet.show2();
     b_m_Rendering.show2();
     b_Pencil.show2();
+    b_Back.show2();
 
     //Layers
     if (layer == 0) { //[layer draw]
@@ -204,6 +207,30 @@ void draw() {
 
   if (mousePressed) {
     mouseIsPressed();
+  }
+
+  if (history.size()<6) {
+    int w = 0;
+    for (int i = 0; i < history.size(); i++) {
+      if (history.get(i).width>=history.get(i).height) {
+        image(history.get(i), GUIScaleW*w, GUIScaleH*950, GUIScaleW*40, (history.get(i).height*1f/history.get(i).width)*GUIScaleH*40);
+        w += 40;
+      } else {
+        image(history.get(i), GUIScaleW*w, GUIScaleH*950, (history.get(i).width*1f/history.get(i).height)*GUIScaleW*40, GUIScaleH*40);
+        w += (history.get(i).width*1f/history.get(i).height)*40;
+      }
+    }
+  } else {
+    int w = 0;
+    for (int i = 0; i < 5; i++) {
+      if (history.get(i).width>=history.get(i).height) {
+        image(history.get(history.size()-5+i), GUIScaleW*w, GUIScaleH*950, GUIScaleW*40, (history.get(history.size()-5+i).height*1f/history.get(history.size()-5+i).width)*GUIScaleH*40);
+        w += 40;
+      } else {
+        image(history.get(history.size()-5+i), GUIScaleW*w, GUIScaleH*950, (history.get(history.size()-5+i).width*1f/history.get(history.size()-5+i).height)*GUIScaleW*40, GUIScaleH*40);
+        w +=(history.get(history.size()-5+i).width*1f/history.get(history.size()-5+i).height)*40;
+      }
+    }
   }
 }
 
@@ -338,6 +365,7 @@ float getCDistance(Color c1, Color c2) {
 
 //Function to make matchPicture to a thread (gets called as a thread)
 void matchP() {
+  addHistory();
   image = matchPicture(image, Pallet.colors);
   thread("updateHighRes");
   DebugC = color(0, 255, 0);
@@ -354,17 +382,26 @@ void mousePressed() {
   s.Pressed();
 
   //every frame the mouse is pressed, the coordinates of the mouse get stored to calculate the offset while grabbing
+  if (touchGUI || (isPencil && Pallet.isOneColorSelected&&isInImage())) {
+    offSet = false;
+  } else {
+    offSet = true;
+  }
   startOfset = new PVector(mouseX, mouseY);
 }
 
 void mouseIsPressed() {
   if (isInImage()) {
-    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false&&(key!=' '||keyPressed==false)&& touchGUI == false && s.selected == false) {
-      if (touchGUI == false) {
-        try {
-          image.loadPixels();
-          PVector v = getCoordinatesInImage(mouseX, mouseY);
+    if (isPencil && Pallet.isOneColorSelected&&Pallet.inPallet(mouseX, mouseY)==false &&(key!=' '||keyPressed==false)&& touchGUI == false && s.selected == false) {
+      try {
+        image.loadPixels();
+        PVector v = getCoordinatesInImage(mouseX, mouseY);
+        if (image.pixels[int(v.x+v.y*image.width)] != Pallet.getPickedColor()) {
+          //println("r: "+red(image.pixels[int(v.x+v.y*image.width)])+" g: "+green(image.pixels[int(v.x+v.y*image.width)])+" b: "+blue(image.pixels[int(v.x+v.y*image.width)]) + " | r: "+red(Pallet.getPickedColor())+" g: "+green(Pallet.getPickedColor())+" b: "+blue(Pallet.getPickedColor()));
+          addHistory();
           image.pixels[int(v.x+v.y*image.width)] = Pallet.getPickedColor();
+          image.updatePixels();
+          //println("set: "+int(v.x)+";"+int(v.y)+" to "+"r: "+red(Pallet.getPickedColor())+" g: "+green(Pallet.getPickedColor())+" b: "+blue(Pallet.getPickedColor()));
           int resolutionHighRes = int((1f/image.width)*1600); //calculates and stores the width and height of one pixel in highRes-Image
           highRes.loadPixels();
           for (int i = 0; i < resolutionHighRes; i++) { //draws changed Pixel onto highRes-Image
@@ -377,9 +414,9 @@ void mouseIsPressed() {
           image.save(savePath("auto save/last_session.png"));
           //thread("updateHighRes");
         }
-        catch(Exception e) {
-          println("[mouseReleased] Error while painting on Image: "+e);
-        }
+      }
+      catch(Exception e) {
+        println("[mouseReleased] Error while painting on Image: "+e);
       }
     }
   }
@@ -400,13 +437,11 @@ void mouseDragged() {
   s.Dragged();
 
   //every frame the mouse gets dragged, a temporary offset gets calculated to add it to offset after mouse gets released
-  //if (s.selected == false && submit.touch() == false && submit2.touch() == false && match.touch() == false) {
-  if (mousePressed && isPencil && Pallet.isOneColorSelected) {
-    startOfset = new PVector(mouseX, mouseY);
-    ofsetTemp = new PVector(0, 0);
-  }
-  if (s.selected == false && ((isPencil && Pallet.isOneColorSelected && isInImage()) == false || (key == ' ' && keyPressed))) {
+
+  if (offSet || (key == ' ' && keyPressed)) {
     ofsetTemp = new PVector((mouseX-startOfset.x), (mouseY-startOfset.y));
+  } else {
+    ofsetTemp = new PVector(0, 0);
   }
 }
 
@@ -443,17 +478,17 @@ void mouseReleased() {
   ofsetTemp = new PVector(0, 0);
 
   //sets limits to offset
-  if (ofset.x>1.5*width) {
-    ofset.x = 1.5*width;
+  if (ofset.x>5*width) {
+    ofset.x = 5*width;
   }
-  if (ofset.y>1.5*height) {
-    ofset.y = 1.5*height;
+  if (ofset.y>5*height) {
+    ofset.y = 5*height;
   }
-  if (ofset.x<-1.5*width) {
-    ofset.x = -1.5*width;
+  if (ofset.x<-5*width) {
+    ofset.x = -5*width;
   }
-  if (ofset.y<-1.5*height) {
-    ofset.y = -1.5*height;
+  if (ofset.y<-5*height) {
+    ofset.y = -5*height;
   }
   Pallet.calculateColorPicked(mouseX, mouseY);
   s.Released();
@@ -514,10 +549,19 @@ void mouseReleased() {
     }
   }
 
+  if (b_Back.touch() && mouseButton == LEFT) {
+    if (history.size() > 0) {
+      image = history.get(history.size()-1);
+      history.remove(history.size()-1);
+      updateHighRes();
+    }
+  }
+
   if (layer == 0) {//[Button pressed layer 0]
 
     if (b_Import.touch() && mouseButton == LEFT) {
       try {
+        addHistory();
         image = loadImage(tf_Import.txtBox.Text);
         //if (image.width > 256 || height > 256) {
         //  if (image.width>image.height) {
@@ -572,6 +616,8 @@ void mouseReleased() {
 
 
     if (b_Change.touch() && mouseButton == LEFT) {
+      addHistory();
+
       String s = tf_Change.txtBox.Text;
       int w = int(s.substring(0, s.indexOf(";")));
       int h = int(s.substring(s.indexOf(";")+1, s.length()));
@@ -579,6 +625,7 @@ void mouseReleased() {
       pg.beginDraw();
       pg.image(highRes, 0, 0, w, h);
       pg.endDraw();
+
       image = pg;
       updateHighRes();
     }
@@ -611,52 +658,61 @@ void mouseReleased() {
 
 
     if (b_Relief.touch() && mouseButton == LEFT) { //[Filter Buttons]
+      addHistory();
       image = Filter.relief(image);
       thread("updateHighRes");
     }
 
 
     if (b_Sharpen.touch() && mouseButton == LEFT) {
+      addHistory();
       image = Filter.sharpen(image);
       thread("updateHighRes");
     }
 
 
     if (b_Black_And_White.touch() && mouseButton == LEFT) {
+      addHistory();
       image = Filter.Black_And_White(image);
       thread("updateHighRes");
     }
 
 
     if (b_Edges.touch() && mouseButton == LEFT) {
+      addHistory();
       image = Filter.edges(image);
       thread("updateHighRes");
     }
 
     if (b_Blur.touch() && mouseButton == LEFT) {
+      addHistory();
       image = Filter.blur(image, 3, 3);
       thread("updateHighRes");
     }
 
     if (b_Invert.touch() && mouseButton == LEFT) {
+      addHistory();
       image = Filter.Invert(image);
       thread("updateHighRes");
     }
 
 
     if (b_Rotate.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      addHistory();
       image = Filter.Rotate(image);
       thread("updateHighRes");
     }
 
 
     if (b_Mirror_v.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      addHistory();
       image = Filter.Mirror_v(image);
       thread("updateHighRes");
     }
 
 
     if (b_Mirror_h.touch() && mouseButton == LEFT) {//[Edit Buttons]
+      addHistory();
       image = Filter.Mirror_h(image);
       thread("updateHighRes");
     }
@@ -704,14 +760,20 @@ void mouseReleased() {
     if (b_RGB.touch() && mouseButton == LEFT) {//[Edit Buttons]
       isRGB= !isRGB;
       b_RGB.pictureChange();
-      //[ni]
     }
     if (b_XY.touch() && mouseButton == LEFT) {//[Edit Buttons]
       isXY= !isXY;
       b_XY.pictureChange();
-      //[ni]
     }
   }
+}
+
+void addHistory() {
+  PGraphics pg = createGraphics(image.width, image.height);
+  pg.beginDraw();
+  pg.image(image, 0, 0);
+  pg.endDraw();
+  history.add(pg);
 }
 
 //creates a Color-Pallet with an Image, saves it in "color pallets/image-pallet.csv" and then loads it
@@ -776,7 +838,7 @@ void drawImage(PImage img, float x, float y, float w, float h) {
       for (int i = 1; i < img.width; i++) {
         line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
       }
-      for (int i = 1; i < img.width; i++) {
+      for (int i = 1; i < img.height; i++) {
         line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
       }
       //image(drawGrid(img, w, h), x, y, w, h);
@@ -794,14 +856,14 @@ void drawImage(PImage img, float x, float y, float w, float h) {
           if (isXY) {
             textAlign(CORNER);
             textSize((w/img.width)/5);
-            text(i+";"+j, x+i*(w/img.width), y+j*(w/img.height)+(w/img.width)/5);
+            text(i+";"+j, x+i*(w/img.width), y+j*(h/img.height)+(w/img.width)/5);
           }
           if (isRGB) {
             textSize((w/img.width)/7);
             textAlign(CENTER);
-            text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2);
-            text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
-            text(int(blue(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
+            text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(h/img.height)+(w/img.width)/2);
+            text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(h/img.height)+(w/img.width)/2+(w/img.width)/6);
+            text(int(blue(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(h/img.height)+(w/img.width)/2+(w/img.width)/3);
           }
         }
       }
@@ -855,14 +917,14 @@ PImage drawXYRGB(PImage img, float w, float h) {
         if (isXY) {
           pg.textAlign(CORNER);
           pg.textSize((w/img.width)/5);
-          pg.text(i+";"+j, i*(w/img.width), j*(w/img.height)+(w/img.width)/5);
+          pg.text(i+";"+j, i*(w/img.width), j*(h/img.height)+(w/img.width)/5); //marker [Error] prints with wrong y-coordinate if width>height
         }
         if (isRGB) {
           pg.textSize((w/img.width)/7);
           pg.textAlign(CENTER);
-          pg.text(int(red(c)), i*(w/img.width)+(w/img.width)/2, j*(w/img.height)+(w/img.width)/2);
-          pg.text(int(green(c)), i*(w/img.width)+(w/img.width)/2, j*(w/img.height)+(w/img.width)/2+(w/img.width)/6);
-          pg.text(int(blue(c)), i*(w/img.width)+(w/img.width)/2, j*(w/img.height)+(w/img.width)/2+(w/img.width)/3);
+          pg.text(int(red(c)), i*(w/img.width)+(w/img.width)/2, j*(h/img.height)+(w/img.width)/2);
+          pg.text(int(green(c)), i*(w/img.width)+(w/img.width)/2, j*(h/img.height)+(w/img.width)/2+(w/img.width)/6);
+          pg.text(int(blue(c)), i*(w/img.width)+(w/img.width)/2, j*(h/img.height)+(w/img.width)/2+(w/img.width)/3);
         }
       }
     }
@@ -913,6 +975,7 @@ void loadImages() {
     I_off_XY = loadImage("Buttons/off_XY.png");
     I_off_Pallet = loadImage("Buttons/off_Pallet.png");
     I_off_Pencil = loadImage("Buttons/off_Pencil.png");
+    I_Back = loadImage("Buttons/Back.png");
 
     I_on_Edit = loadImage("Buttons/on_Edit.png");
     I_on_Filter = loadImage("Buttons/on_Filter.png");
@@ -1057,6 +1120,7 @@ void loadGUI() {
   b_m_Rendering = new Button(true, I_on_Rendering, I_off_Rendering, false, int(GUIScaleW*230), int(GUIScaleH*10), int(GUIScaleW * 100), int(GUIScaleH * 40), i, false);
   i = isPencil ? 1 : 2;
   b_Pencil = new Button(true, I_on_Pencil, I_off_Pencil, false, int(GUIScaleW*(width-70)), int(GUIScaleH*(height-127)), int(GUIScaleW * 60), int(GUIScaleH * 38), i, false);
+  b_Back = new Button(true, I_Back, false, int(GUIScaleW*(width-70)), int(GUIScaleH*(height-127-48)), int(GUIScaleW*60), int(GUIScaleH*38), false);
 
   tf_Import = new TextField(Import_0, int(GUIScaleW*20), int(GUIScaleH*50), int(GUIScaleW*200), int(GUIScaleH*60), Import_box_0);
   tf_Save = new TextField(Save_0, int(GUIScaleW*20), int(GUIScaleH*236), int(GUIScaleW*200), int(GUIScaleH*60), Save_box_0);
@@ -1109,7 +1173,7 @@ void loadGUI() {
 void setTouchGUI() {
   touchGUI = false;
 
-  Button[] b = new Button[28];
+  Button[] b = new Button[29];
   b[0] = b_m_Image;
   b[1] = b_m_Pallet;
   b[2] = b_m_Rendering;
@@ -1138,6 +1202,7 @@ void setTouchGUI() {
   b[25] = b_Pixel_Mode;
   b[26] = b_RGB;
   b[27] = b_XY;
+  b[28] = b_Back;
 
   TextField[] tf = new TextField[3];
   tf[0] = tf_Import;
@@ -1156,6 +1221,10 @@ void setTouchGUI() {
   }
 
   if (s.touch()) {
+    touchGUI = true;
+  }
+
+  if (Pallet.inPallet(mouseX, mouseY)) {
     touchGUI = true;
   }
 }
