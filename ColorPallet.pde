@@ -2,7 +2,7 @@ class ColorPallet {
   Color[] colors = new Color[0];
   color[] pallet = new color[0];
   int displayX, displayY, displayW, displayH;
-  int colorPicked = 0;
+  int colorPicked = -1;
   float colorWidth;
   float colorHeight;
 
@@ -63,6 +63,10 @@ class ColorPallet {
   void clearPallet() {
     pallet = new color[0];
     colors = new Color[0];
+    println("[ColorPallet] [clearPallet] Pallet cleard!");
+    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    isOneColorSelected = false;
+    colorPicked = -1;
   }
 
   boolean inPallet(int x, int y) {
@@ -80,14 +84,14 @@ class ColorPallet {
         if (colorPicked != floor((y-displayY)/colorHeight)) {
           colorPicked = floor((y-displayY)/colorHeight);
         } else {
-          colorPicked = 0;
+          colorPicked = -1;
           isOneColorSelected = false;
         }
       } else {
         if (colorPicked != floor((x-displayX)/colorWidth)) {
           colorPicked = floor((x-displayX)/colorWidth);
         } else {
-          colorPicked = 0;
+          colorPicked = -1;
           isOneColorSelected = false;
         }
       }
@@ -95,6 +99,7 @@ class ColorPallet {
       if ((isOneColorSelected && isInImage()) || (touchGUI && isOneColorSelected)) {
         isOneColorSelected = true;
       } else {
+        colorPicked = -1;
         isOneColorSelected = false;
       }
     }
@@ -139,6 +144,8 @@ class ColorPallet {
         colorHeight = displayH;
       }
     }
+    println("[ColorPallet] [clearPallet] Color deleted: "+z);
+    saveTable(getTable(), savePath("auto save/last_session.csv"));
   }
 
   private void removeLast(int z) {
@@ -225,6 +232,7 @@ class ColorPallet {
       i++;
     }
     addColors(cols);
+    saveTable(getTable(), savePath("auto save/last_session.csv"));
   }
 
   //creates a Color-Pallet with an Image, saves it in "color pallets/image-pallet.csv" and then loads it
@@ -234,7 +242,7 @@ class ColorPallet {
     t.addColumn("green");
     t.addColumn("blue");
     img.loadPixels();
-    for (Color c : Pallet.colors) {
+    for (Color c : colors) {
       TableRow r = t.addRow();
       r.setInt("red", c.red);
       r.setInt("green", c.green);
@@ -242,16 +250,27 @@ class ColorPallet {
     }
     for (int i = 0; i < img.width; i++) {
       for (int j = 0; j < img.height; j++) {
+        boolean isDouble = false;
         color c = img.get(i, j);
-        TableRow r = t.addRow();
-        r.setInt("red", int(red(c)));
-        r.setInt("green", int(green(c)));
-        r.setInt("blue", int(blue(c)));
+        for (TableRow  r : t.rows()) {
+          if (r.getInt("red") == red(c) && r.getInt("green") == green(c) && r.getInt("blue") == blue(c)) {
+            isDouble = true;
+          }
+        }
+        if (isDouble == false) {
+          TableRow r = t.addRow();
+          r.setInt("red", int(red(c)));
+          r.setInt("green", int(green(c)));
+          r.setInt("blue", int(blue(c)));
+        }
       }
     }
     saveTable(t, "color pallets/image-pallet.csv");
     addTable(t);
-    println("[loadPalletWithImage] Imported Pallet out of Image-File");
+    println("[ColorPallet] [loadPalletWithImage] Imported Pallet out of Image-File");
+    GUIDebug = "Imported Pallet out of Image-File";
+    DebugC = color(0, 255, 0);
+    saveTable(getTable(), savePath("auto save/last_session.csv"));
   }
 
   void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of Colors (Color[] colors) //marker
@@ -266,12 +285,14 @@ class ColorPallet {
         }
       }
       catch(Exception e) {
-        println("[loadPallet] Error while loading Image to make a .csv-file out of it!");
+        println("[ColorPallet] [loadPallet] Error while loading Image to make a .csv-file out of it!");
+        GUIDebug = "Error while loading image for Pallet";
+        DebugC = color(255, 0, 0);
       }
       if (img != null) {
         loadPalletWithImage(img);
       } else {
-        println("[loadPallet] Error: no Image found!");
+        println("[ColorPallet] [loadPallet] Error: no Image found!");
       }
     }
 
@@ -279,9 +300,8 @@ class ColorPallet {
     else {
       try {
         Table t = loadTable("/color pallets/"+s, "header");
-        Pallet.addTable(t);
-        Pallet = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
-        println("Pallet successfully loaded: "+s);
+        addTable(t);
+        println("[ColorPallet] [loadPallet] Pallet successfully loaded: "+s);
         GUIDebug = "Successfully loaded Pallet: "+s;
         DebugC = color(0, 255, 0);
       }
@@ -306,23 +326,119 @@ class ColorPallet {
       }
     }
   }
-  
+
   //saves the current Pallet into a .csv file with the name 's' in /color pallets/
-void savePallet(String s, ColorPallet p, PImage img) {
-  Table t = new Table();
-  t.addColumn("red");
-  t.addColumn("green");
-  t.addColumn("blue");
-  img.loadPixels();
-  for (int i = 0; i < p.pallet.length; i++) {
-    TableRow r = t.addRow();
-    r.setInt("red", int(red(p.pallet[i])));
-    r.setInt("green", int(green(p.pallet[i])));
-    r.setInt("blue", int(blue(p.pallet[i])));
+  void savePallet(String s, PImage img) {
+    Table t = new Table();
+    t.addColumn("red");
+    t.addColumn("green");
+    t.addColumn("blue");
+    img.loadPixels();
+    for (int i = 0; i < pallet.length; i++) {
+      TableRow r = t.addRow();
+      r.setInt("red", int(red(pallet[i])));
+      r.setInt("green", int(green(pallet[i])));
+      r.setInt("blue", int(blue(pallet[i])));
+    }
+    saveTable(t, "color pallets/"+s+".csv");
+    DebugC = color(0, 255, 0);
+    GUIDebug ="Successfully saved Pallet: "+"color pallets/"+s+".csv";
+    println("Successfully saved Pallet: "+"color pallets/"+s+".csv");
   }
-  saveTable(t, "color pallets/"+s+".csv");
-  DebugC = color(0, 255, 0);
-  GUIDebug ="Successfully saved Pallet: "+"color pallets/"+s+".csv";
-  println("Successfully saved Pallet: "+"color pallets/"+s+".csv");
-}
+
+  Table getTable() {
+    Table t = new Table();
+    t.addColumn("red");
+    t.addColumn("green");
+    t.addColumn("blue");
+    for (int i = 0; i < pallet.length; i++) {
+      TableRow r = t.addRow();
+      r.setInt("red", int(red(pallet[i])));
+      r.setInt("green", int(green(pallet[i])));
+      r.setInt("blue", int(blue(pallet[i])));
+    }
+    return t;
+  }
+
+  void sortColors() {
+    float[] values = new float[colors.length];
+    int[] positions = new int[colors.length];
+    for (int i = 0; i < colors.length; i++) {
+      //int red = colors[i].red;
+      //int green = colors[i].green;
+      //int blue = colors[i].blue;
+      //float percent = 0;
+      //if(red > green && red > blue) {
+      //    percent = 255f/red;
+      //    red = 255;
+      //    green = int(green * percent);
+      //    blue = int(blue * percent);
+      //    if(green < blue) {
+      //      blue = int(-sqrt(((sqrt((pow(255f-green,2)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
+      //      green = 0;
+      //    } else {
+      //      green = int(-sqrt(((sqrt((pow(255f-green,2)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
+      //      blue = 0;
+      //    }
+      //}
+      //if(green > red && green > blue) {
+      //    percent = 255f/green;
+      //    green = 255;
+      //    red = int(red * percent);
+      //    blue = int(blue * percent);
+      //    if(red < blue) {
+      //      blue = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
+      //      red = 0;
+      //    } else {
+      //      red = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
+      //      println(-sqrt(abs(pow((sqrt((pow(255f-red,2f)+pow(255f-blue,2f))))/saturation(color(red,green,blue)),2)-pow(255f,2f)))+255f);
+      //      blue = 0;
+      //    }
+      //}
+      //if(blue > red && blue > green) {
+      //    percent = 255f/blue;
+      //    blue = 255;
+      //    red = int(red * percent);
+      //    green = int(green * percent);
+      //    if(red < green) {
+      //      green = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-green,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
+      //      red = 0;
+      //    } else {
+      //      red = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-green,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
+      //      green = 0;
+      //    }
+      //}
+      values[i] = colors[i].red*1 + 10 * colors[i].green + 100 * colors[i].blue;
+      positions[i] = i;
+    }
+    for (int i = 0; i < colors.length-1; i++) {
+      for (int j = 0; j < colors.length-1; j++) {
+        if (values[j]<values[j+1]) {
+          int pos1 = positions[j];
+          int pos2 = positions[j+1];
+          float value1 = values[j];
+          float value2 = values[j+1];
+          values[j] = value2;
+          values[j+1] = value1;
+          positions[j] = pos2;
+          positions[j+1] = pos1;
+        }
+      }
+    }
+    Color[] cols = new Color[colors.length];
+    color[] pal = new color[colors.length];
+    
+    for (int i = 0; i < colors.length; i++) {
+      cols[i] = new Color(colors[i].red,colors[i].green,colors[i].blue);
+      pal[i] = color(colors[i].red,colors[i].green,colors[i].blue);
+    }
+    for (int i = 0; i < colors.length; i++) {
+      colors[i] = cols[positions[i]];
+      pallet[i] = pal[positions[i]];
+    }
+    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    DebugC = color(0, 255, 0);
+    GUIDebug ="Sorted Colors in Pallet";
+    println("[ColorPallet] [sortColors] Sorted Colors in Pallet");
+  }
 }

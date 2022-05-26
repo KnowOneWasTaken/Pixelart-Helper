@@ -20,7 +20,6 @@
  
  */
 PImage image = new PImage();
-Table colorTable = new Table();
 ColorPicture pixelArray;
 Button b_m_Image, b_m_Pallet, b_m_Rendering; //menue Buttons
 Button b_Pencil, b_Back; //global Buttons
@@ -86,11 +85,21 @@ void setup() {
     image = createImage(10, 10, RGB);
   }
   loadGUI();
+  try {
+    Pallet.loadPallet("../auto save/last_session.csv");
+  }
+  catch(Exception e) {
+    println("[Setup] Couldn't load last_session.csv");
+    Pallet.loadPallet("colors.csv");
+  }
 
   s.scale = 0.125;
   updateHighRes();
   oldWidth = width;
   oldHeight = height;
+  println("[Setup] Finished Setup");
+  DebugC = color(0, 255, 0);
+  GUIDebug = "Launched Program";
 }
 
 void draw() {
@@ -172,13 +181,22 @@ void draw() {
     }
   }
   catch(Exception e) {
-    println("[Draw] Error while showing Buttons: "+e);
+    println("[Draw] Error while rendering Buttons: "+e);
+    DebugC = color(255, 0, 0);
+    GUIDebug = "Error while rendering Buttons";
   }
-  s.show();
+  try {
+    s.show();
 
-  //displays the color-pallet
-  Pallet.display();
-  Pallet.displaySelected();
+    //displays the color-pallet
+    Pallet.display();
+    Pallet.displaySelected();
+  }
+  catch(Exception e) {
+    println("[Draw] Error while rendering Slider and Pallet: "+e);
+    DebugC = color(255, 0, 0);
+    GUIDebug = "Error while rendering GUI";
+  }
 
   //writes the Debug/Info-Text in the bottom left corner and the progress of the match-thread
   textSize(24*GUIScaleW);
@@ -194,38 +212,45 @@ void draw() {
     text(s, width-textWidth(s), height-10);
   }
 
-  if (oldWidth != width || oldHeight != height) {
-    loadGUI();
-    oldWidth = width;
-    oldHeight = height;
-  }
+  try {
+    if (oldWidth != width || oldHeight != height) {
+      loadGUI();
+      oldWidth = width;
+      oldHeight = height;
+    }
 
-  if (mousePressed) {
-    mouseIsPressed();
-  }
+    if (mousePressed) {
+      mouseIsPressed();
+    }
 
-  if (history.size()<6) {
-    int w = 0;
-    for (int i = 0; i < history.size(); i++) {
-      if (history.get(i).width>=history.get(i).height) {
-        image(history.get(i), GUIScaleW*w, GUIScaleH*950, GUIScaleW*40, (history.get(i).height*1f/history.get(i).width)*GUIScaleH*40);
-        w += 40;
-      } else {
-        image(history.get(i), GUIScaleW*w, GUIScaleH*950, (history.get(i).width*1f/history.get(i).height)*GUIScaleW*40, GUIScaleH*40);
-        w += (history.get(i).width*1f/history.get(i).height)*40;
+    if (history.size()<6) {
+      int w = 0;
+      for (int i = 0; i < history.size(); i++) {
+        if (history.get(i).width>=history.get(i).height) {
+          image(history.get(i), GUIScaleW*w, GUIScaleH*950, GUIScaleW*40, (history.get(i).height*1f/history.get(i).width)*GUIScaleH*40);
+          w += 40;
+        } else {
+          image(history.get(i), GUIScaleW*w, GUIScaleH*950, (history.get(i).width*1f/history.get(i).height)*GUIScaleW*40, GUIScaleH*40);
+          w += (history.get(i).width*1f/history.get(i).height)*40;
+        }
+      }
+    } else {
+      int w = 0;
+      for (int i = 0; i < 5; i++) {
+        if (history.get(i).width>=history.get(i).height) {
+          image(history.get(history.size()-5+i), GUIScaleW*w, GUIScaleH*950, GUIScaleW*40, (history.get(history.size()-5+i).height*1f/history.get(history.size()-5+i).width)*GUIScaleH*40);
+          w += 40;
+        } else {
+          image(history.get(history.size()-5+i), GUIScaleW*w, GUIScaleH*950, (history.get(history.size()-5+i).width*1f/history.get(history.size()-5+i).height)*GUIScaleW*40, GUIScaleH*40);
+          w +=(history.get(history.size()-5+i).width*1f/history.get(history.size()-5+i).height)*40;
+        }
       }
     }
-  } else {
-    int w = 0;
-    for (int i = 0; i < 5; i++) {
-      if (history.get(i).width>=history.get(i).height) {
-        image(history.get(history.size()-5+i), GUIScaleW*w, GUIScaleH*950, GUIScaleW*40, (history.get(history.size()-5+i).height*1f/history.get(history.size()-5+i).width)*GUIScaleH*40);
-        w += 40;
-      } else {
-        image(history.get(history.size()-5+i), GUIScaleW*w, GUIScaleH*950, (history.get(history.size()-5+i).width*1f/history.get(history.size()-5+i).height)*GUIScaleW*40, GUIScaleH*40);
-        w +=(history.get(history.size()-5+i).width*1f/history.get(history.size()-5+i).height)*40;
-      }
-    }
+  }
+  catch(Exception e) {
+    println("[Draw] Error while calculating oldWidth, mouseIsPressed() and rendering History: "+e);
+    DebugC = color(255, 0, 0);
+    GUIDebug = "Error while rendering History";
   }
 }
 
@@ -237,7 +262,6 @@ PImage matchPicture(PImage img, Color[] pallet) {
       pixelArray.setC(matchColor(pallet, pixelArray.getC(x, y)), pixelArray.getZ(x, y));
     }
   }
-  println("Matched Picture successfully!");
   return pixelArray.convertToImage();
 }
 
@@ -264,9 +288,9 @@ void matchP() {
   addHistory();
   image = matchPicture(image, Pallet.colors);
   thread("updateHighRes");
-  DebugC = color(0, 255, 0);
-  textSize(24*GUIScaleW);
-  GUIDebug = "Successfully matched Picture with pallet";
+  println("[matchP] Matched image with pallet");
+  DebugC = color(255, 0, 0);
+  GUIDebug = "Matched image";
 }
 
 void mousePressed() {
@@ -311,7 +335,9 @@ void mouseIsPressed() {
         }
       }
       catch(Exception e) {
-        println("[mouseReleased] Error while painting on Image: "+e);
+        println("[mouseIsPressed] Error while painting on Image: "+e);
+        DebugC = color(255, 0, 0);
+        GUIDebug = "Error while painting on image";
       }
     }
   }
@@ -374,6 +400,8 @@ void mouseReleased() {
       }
       catch(Exception e) {
         println("[mouseReleased] Error while adding picked Color of Image: "+e);
+        DebugC = color(255, 0, 0);
+        GUIDebug = "Error while adding picked color of image";
       }
     }
   }
@@ -457,7 +485,9 @@ void mouseReleased() {
     if (history.size() > 0) {
       image = history.get(history.size()-1);
       history.remove(history.size()-1);
-      updateHighRes();
+      thread("updateHighRes");
+      DebugC = color(0, 255, 0);
+      GUIDebug = "Undo";
     }
   }
 
@@ -472,17 +502,17 @@ void mouseReleased() {
           thread("updateHighRes");
           DebugC = color(0, 255, 0);
           GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
-          println("[MouseReleased] Picture successfully loaded: "+tf_Import.txtBox.Text);
+          println("[MouseReleased] [layer==0] Picture successfully loaded: "+tf_Import.txtBox.Text);
         } else {
           history.remove(history.size()-1);
           image = img;
           DebugC = color(255, 0, 0);
           GUIDebug = "No image found to import named: " + tf_Import.txtBox.Text;
-          println("[MouseReleased] No image found to import!");
+          println("[MouseReleased] [layer==0] No image found to import!");
         }
       }
       catch(Exception e) {
-        println("[MouseReleased] Error while importing Image (Button-press): "+e);
+        println("[MouseReleased] [layer==0] Error while importing Image (Button-press): "+e);
         DebugC = color(255, 0, 0);
         GUIDebug = "Error while importing image: " + tf_Import.txtBox.Text;
       }
@@ -497,26 +527,15 @@ void mouseReleased() {
     if (b_Save.touch()&&mouseButton==LEFT) {
       try {
         image.save("saved Images/"+tf_Save.txtBox.Text+".png");
-        highRes.save("saved Images/"+tf_Save.txtBox.Text+"-HighRes.png");
-        if (isGrid || isRGB || isXY) {
-          PGraphics pg = createGraphics(highRes.width, highRes.height);
-          pg.beginDraw();
-          pg.image(highRes, 0, 0);
-          if (isGrid) {
-            pg.image(drawGrid(image, highRes.width, highRes.height), 0, 0);
-          }
-          if (isXY || isRGB) {
-            pg.image(drawXYRGB(image, highRes.width, highRes.height), 0, 0);
-          }
-          pg.endDraw();
-          pg.save("saved Images/"+tf_Save.txtBox.Text+"-HighRes-Render.png");
-        }
+        thread("saveHighRes");
         DebugC = color(0, 255, 0);
         GUIDebug = "Successfully stored Picture as: "+tf_Save.txtBox.Text+".png";
-        println("[MouseReleased] [layer==1] Picture successfully saved: "+tf_Save.txtBox.Text+".png");
+        println("[MouseReleased] [layer==0] Picture successfully saved: "+tf_Save.txtBox.Text+".png");
       }
       catch(Exception e) {
-        println("[MouseReleased] [layer==1] Error while saving Image: "+e);
+        println("[MouseReleased] [layer==0] Error while saving Image: "+e);
+        DebugC = color(255, 0, 0);
+        GUIDebug = "Error while saving image";
       }
     }
 
@@ -631,14 +650,13 @@ void mouseReleased() {
       Pallet.loadPalletWithImage(image);
     }
     if (b_Save.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      Pallet.savePallet(tf_Save.txtBox.Text, Pallet, image);
+      Pallet.savePallet(tf_Save.txtBox.Text, image);
     }
     if (b_Clear_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
       Pallet.clearPallet();
-      println("Pallet cleard!");
     }
     if (b_Sort_Colors.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      //[ni]
+      Pallet.sortColors();
     }
     if (b_Pick_Color.touch() && mouseButton == LEFT) {//[Edit Buttons]
       isColorPicking = !isColorPicking;
@@ -674,6 +692,33 @@ void mouseReleased() {
   }
 }
 
+void saveHighRes() {
+  try {
+    highRes.save("saved Images/"+tf_Save.txtBox.Text+"-HighRes.png");
+    if (isGrid || isRGB || isXY) {
+      PImage img = highRes;
+      PGraphics pg = createGraphics(img.width, img.height);
+      pg.beginDraw();
+
+      pg.image(img, 0, 0);
+      if (isGrid) {
+        pg.image(drawGrid(image, img.width, img.height), 0, 0);
+      }
+      if (isXY || isRGB) {
+        pg.image(drawXYRGB(image, img.width, img.height), 0, 0);
+      }
+      pg.endDraw();
+      pg.save("saved Images/"+tf_Save.txtBox.Text+"-HighRes-Render.tga");
+    }
+    println("[saveHighRes] Saved Image in highRes");
+  }
+  catch(Exception e) {
+    println("[saveHighRes] Error while saving HighRes-image: "+e);
+    DebugC = color(255, 0, 0);
+    GUIDebug = "Error while saving High-Resolution-Image";
+  }
+}
+
 void addHistory() {
   PGraphics pg = createGraphics(image.width, image.height);
   pg.beginDraw();
@@ -699,22 +744,31 @@ void drawImage(PImage img, float x, float y, float w, float h) {
   try {
     x=x-w/2;
     y=y-h/2;
-    if (isGrid) {
-      strokeWeight(0.5);
-      stroke(0);
-      fill(0);
-      for (int i = 1; i < img.width; i++) {
-        line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
-      }
-      for (int i = 1; i < img.height; i++) {
-        line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
-      }
-      //image(drawGrid(img, w, h), x, y, w, h);
+    if (isGrid && w*1f/img.width > 4) {
+      renderGrid(1, img, x, y, w, h);
+    } else if (isGrid && w*1f/img.width > 3) {
+      renderGrid(2, img, x, y, w, h);
+    } else if (isGrid && w*1f/img.width > 2) {
+      renderGrid(4, img, x, y, w, h);
+    } else if (isGrid && w*1f/img.width > 1) {
+      renderGrid(8, img, x, y, w, h);
+    } else if (isGrid && w*1f/img.width > 0.5) {
+      renderGrid(16, img, x, y, w, h);
+    } else if (isGrid) {
+      renderGrid(32, img, x, y, w, h);
     }
     ColorPicture CP = new ColorPicture(img);
-    if (isXY||isRGB) {
-      for (int j = 0; j < img.height; j++) {
-        for (int i = 0; i < img.width; i++) {
+    if ((isXY||isRGB) && w/img.width > 8) {
+      int startX = int((-x*img.width)/w);
+      int startY = int((-y*img.height)/h);
+      if (startX<1) startX = 0;
+      if (startY<1) startY = 0;
+      int endX = int((img.width*(width-x))/w)+2;
+      int endY = int((img.height*(height-y))/h)+2;
+      if (endX > img.width) endX = img.width;
+      if (endY > img.height) endY = img.height;
+      for (int j = startY; j < endY; j++) {
+        for (int i = startX; i < endX; i++) {
           color c = CP.getC(i, j).getColor();
           if (brightness(c)>128) {
             fill(0);
@@ -723,11 +777,11 @@ void drawImage(PImage img, float x, float y, float w, float h) {
           }
           if (isXY) {
             textAlign(CORNER);
-            textSize((w/img.width)/5);
+            textSize((w/img.width)/4);
             text(i+";"+j, x+i*(w/img.width), y+j*(h/img.height)+(w/img.width)/5);
           }
           if (isRGB) {
-            textSize((w/img.width)/7);
+            textSize((w/img.width)/5);
             textAlign(CENTER);
             text(int(red(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(h/img.height)+(w/img.width)/2);
             text(int(green(c)), x+i*(w/img.width)+(w/img.width)/2, y+j*(h/img.height)+(w/img.width)/2+(w/img.width)/6);
@@ -740,6 +794,26 @@ void drawImage(PImage img, float x, float y, float w, float h) {
   }
   catch(Exception e) {
     println("[drawImage] Error while drawing Overlay [2]: "+e);
+  }
+}
+
+void renderGrid(int space, PImage img, float x, float y, float w, float h) {
+  strokeWeight(0.5);
+  stroke(0);
+  fill(0);
+  int startX = int((-x*img.width)/w)+1;
+  int startY = int((-y*img.height)/h)+1;
+  if (startX<1) startX = 1;
+  if (startY<1) startY = 1;
+  int endX = int((img.width*(width-x))/w)+1;
+  int endY = int((img.height*(height-y))/h)+1;
+  if (endX > img.width) endX = img.width;
+  if (endY > img.height) endY = img.height;
+  for (int i = startX; i < endX; i+=space) {
+    line(x+i*(w/img.width), y, x+i*(w/img.width), y+h);
+  }
+  for (int i = startY; i < endY; i+=space) {
+    line(x, y+i*(h/img.height), x+w, y+i*(h/img.height));
   }
 }
 
@@ -756,16 +830,14 @@ PImage drawGrid(PImage img, float w, float h) {
     for (int i = 1; i < img.width; i++) {
       pg.line(0, i*(h/img.height), w, i*(h/img.height));
     }
-    PImage img2 = pg;
     pg.endDraw();
-    return img2;
+    return pg;
   }
   catch(Exception e) {
     println("[drawGrid] Error while creating Grid-Image: "+e);
     PGraphics pg = createGraphics(int(w), int(h));
     pg.image(img, pg.width, pg.height);
-    PImage img2 = pg;
-    return img2;
+    return pg;
   }
 }
 
@@ -784,11 +856,11 @@ PImage drawXYRGB(PImage img, float w, float h) {
         }
         if (isXY) {
           pg.textAlign(CORNER);
-          pg.textSize((w/img.width)/5);
+          pg.textSize((w/img.width)/4);
           pg.text(i+";"+j, i*(w/img.width), j*(h/img.height)+(w/img.width)/5);
         }
         if (isRGB) {
-          pg.textSize((w/img.width)/7);
+          pg.textSize((w/img.width)/5);
           pg.textAlign(CENTER);
           pg.text(int(red(c)), i*(w/img.width)+(w/img.width)/2, j*(h/img.height)+(w/img.width)/2);
           pg.text(int(green(c)), i*(w/img.width)+(w/img.width)/2, j*(h/img.height)+(w/img.width)/2+(w/img.width)/6);
@@ -807,28 +879,31 @@ void updateHighRes() {
       println("[updateHighRes] No image found to upadte highRes!");
     }
     int resolutionHighRes = int((1f/image.width)*1600);
-    PGraphics pg;
-    pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
-    pg.beginDraw();
-    pg.image(image, 0, 0, image.width*resolutionHighRes, image.height*resolutionHighRes);
-    image.loadPixels();
-    pg.noStroke();
-    for (int i = 0; i < image.height; i++) {
-      for (int j = 0; j < image.width; j++) {
-        pg.fill(image.pixels[i*image.width+j]);
-        pg.rect(j*(image.width*resolutionHighRes/image.width), i*(image.height*resolutionHighRes/image.height), (image.width*resolutionHighRes/image.width), (image.height*resolutionHighRes/image.height));
-        //fill(255-floor(((i*image.width+j)/((image.height*image.width)*1f))*255f), floor(((i*image.width+j)/((image.height*image.width)*1f))*100f), 0);
-      }
-    }
-    pg.endDraw();
-
-    highRes = pg;
+    highRes = createHighRes(resolutionHighRes);
     image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
     image.save(savePath("auto save/last_session.png"));
   }
   catch(Exception e) {
     println("[updateHighRes] Error while creating a highRes-Image: "+e);
   }
+}
+
+PImage createHighRes(int res) {
+  PGraphics pg;
+  pg = createGraphics(int(image.width*res), int(image.height*res));
+  pg.beginDraw();
+  pg.image(image, 0, 0, image.width*res, image.height*res);
+  image.loadPixels();
+  pg.noStroke();
+  for (int i = 0; i < image.height; i++) {
+    for (int j = 0; j < image.width; j++) {
+      pg.fill(image.pixels[i*image.width+j]);
+      pg.rect(j*(image.width*res/image.width), i*(image.height*res/image.height), (image.width*res/image.width), (image.height*res/image.height));
+      //fill(255-floor(((i*image.width+j)/((image.height*image.width)*1f))*255f), floor(((i*image.width+j)/((image.height*image.width)*1f))*100f), 0);
+    }
+  }
+  pg.endDraw();
+  return pg;
 }
 
 void loadImages() {
@@ -969,10 +1044,10 @@ PVector getCoordinatesInImage(int x, int y) {
 }
 
 float getZoom() {
-  if (width/height<image.width/image.height) {
-    return (image.width/image.height)*width*4*s.scale+20;
+  if (image.height/image.width<image.width/image.height) {
+    return (image.width/image.height)*width*4*(s.scale/16)*image.width*6*s.scale+20;
   } else {
-    return (width/height)*height*4*s.scale+20;
+    return (image.height/image.width)*height*4*(s.scale/16)*image.height*6*s.scale+20;
   }
 }
 
@@ -1035,7 +1110,7 @@ void loadGUI() {
   b_XY = new Button(true, I_on_XY, I_off_XY, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
 
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
-  Pallet.loadPallet("colors.csv");
+  Pallet = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
   println("[loadGUI] Loaded GUI");
 }
 

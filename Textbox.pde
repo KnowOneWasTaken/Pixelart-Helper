@@ -38,6 +38,7 @@ class Textbox {
   void replaceText(String s) {
     Text = s;
     TextLength = s.length();
+    //w=int(textWidth(Text)+textWidth("Q")*2);
   }
 
   void display() {
@@ -198,7 +199,7 @@ class Textbox {
   }
 
   private void addText(char text) {
-    if (textWidth(Text + text) < w) {
+    if (textWidth(Text + text)+textWidth(text) < w) {
       Text += text;
       TextLength++;
     } else {
@@ -214,7 +215,7 @@ class Textbox {
     if (TextLength - 1 >= 0) {
       Text = Text.substring(0, TextLength - 1);
       TextLength--;
-      w=int(textWidth(Text)+textWidth("Q"));
+      w=int(textWidth(Text)+textWidth("Q")*2);
     }
   }
 
