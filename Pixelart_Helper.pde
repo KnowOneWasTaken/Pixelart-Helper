@@ -1,7 +1,7 @@
 /* //<>//
 
  Author: Philipp Schröder aka KnowOneWasTaken
- Version: 1.0.3
+ Version: 1.1.0
  Last time edited: 26.05.2022
  
  [ni]: markers for not written code (not implemented [yet])
@@ -289,7 +289,7 @@ void matchP() {
   image = matchPicture(image, Pallet.colors);
   thread("updateHighRes");
   println("[matchP] Matched image with pallet");
-  DebugC = color(255, 0, 0);
+  DebugC = color(0, 255, 0);
   GUIDebug = "Matched image";
 }
 

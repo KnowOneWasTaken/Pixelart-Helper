@@ -408,7 +408,9 @@ class ColorPallet {
       //      green = 0;
       //    }
       //}
-      values[i] = colors[i].red*1 + 10 * colors[i].green + 100 * colors[i].blue;
+
+      //values[i] = colors[i].red*1 + 10 * colors[i].green + 100 * colors[i].blue;
+      values[i] = brightness(colors[i].getColor());
       positions[i] = i;
     }
     for (int i = 0; i < colors.length-1; i++) {
@@ -427,10 +429,10 @@ class ColorPallet {
     }
     Color[] cols = new Color[colors.length];
     color[] pal = new color[colors.length];
-    
+
     for (int i = 0; i < colors.length; i++) {
-      cols[i] = new Color(colors[i].red,colors[i].green,colors[i].blue);
-      pal[i] = color(colors[i].red,colors[i].green,colors[i].blue);
+      cols[i] = new Color(colors[i].red, colors[i].green, colors[i].blue);
+      pal[i] = color(colors[i].red, colors[i].green, colors[i].blue);
     }
     for (int i = 0; i < colors.length; i++) {
       colors[i] = cols[positions[i]];

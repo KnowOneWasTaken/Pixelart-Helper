@@ -36,20 +36,20 @@ class TextField {
       txtBox.pressed(mX, mY);
     }
   }
-  
+
   void setHitbox(boolean b) {
     hitbox = b;
   }
-  
+
   boolean getHitbox() {
     return hitbox;
   }
-  
+
   boolean touch() {
-   if(hitbox && txtBox.overBox(mouseX, mouseY)) {
-     return true;
-   } else {
-    return false; 
-   }
+    if (hitbox && txtBox.overBox(mouseX, mouseY)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
