@@ -39,8 +39,6 @@ String GUIDebug = "";
 color DebugC = color(0, 255, 0);
 ColorPallet Pallet = new ColorPallet();
 Slider s;
-int Prozent = 0;
-String loading ="";
 PVector ofset = new PVector(0, 0);
 PVector ofsetTemp = new PVector(0, 0);
 PVector startOfset = new PVector(0, 0);
@@ -79,10 +77,8 @@ void setup() {
   try {
     image = loadImage("auto save/last_session.png");
     if (image != null) {
-      thread("updateHighRes");
     } else {
       image = createImage(10, 10, RGB);
-      thread("updateHighRes");
     }
   }
   catch(Exception e) {
@@ -119,7 +115,7 @@ void draw() {
     textSize(24*GUIScaleW);
     println("[Draw] Error while drawing Image: "+e);
     DebugC = color(255, 0, 0);
-    GUIDebug = "Error while drawing Image on sceen!";
+    GUIDebug = "Error while drawing Image on screen!";
     image = createImage(10, 10, RGB);
   }
   imageMode(CORNER);
@@ -187,7 +183,6 @@ void draw() {
   //writes the Debug/Info-Text in the bottom left corner and the progress of the match-thread
   textSize(24*GUIScaleW);
   fill(color(0, 255, 0));
-  text(loading, 5, height-int(GUIScaleW*30));
   fill(DebugC);
   text(GUIDebug, 5, height-10);
 
@@ -234,111 +229,12 @@ void draw() {
   }
 }
 
-void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of Colors (Color[] colors)
-  //loads Pallet of an Image if it is .png or .jpg
-  if (s.substring(s.length()-4, s.length()).equals(".png") || s.substring(s.length()-4, s.length()).equals(".jpg")) {
-    println("Try to load pallet from picture");
-    PImage img = null;
-    try {
-      img = loadImage(s);
-
-      if (img == null) {
-        img = loadImage("color pallets/"+s);
-      } else {
-        println("Image load complete in data: "+img);
-      }
-    }
-    catch(Exception e) {
-      println("Error while loading Image to make a .csv-file out of it!");
-    }
-    println("Image: "+img);
-    if (img != null) {
-      thread("loadPalletWithImage");
-    }
-  }
-
-  //loads a pallet of a csv file, if it fails, it generates a empty one and loads it
-  else {
-    try {
-      colorTable = loadTable("/color pallets/"+s, "header");
-      //if (Pallet.colors.length!=0) {
-      //  for (int i = 0; i < Pallet.pallet.length; i++) {
-      //    Pallet.colors[i] = new Color(int(red(Pallet.pallet[i])), int(green(Pallet.pallet[i])), int(blue(Pallet.pallet[i])));
-      //  }
-      //}
-      //Color[] c = new Color[colorTable.getRowCount()];
-      int z = 0;
-      Pallet.colors = new Color[colorTable.getRowCount()];
-      for (TableRow row : colorTable.rows()) {
-        Pallet.colors[z] = new Color();
-        Pallet.colors[z].red = row.getInt("red");
-        Pallet.colors[z].blue = row.getInt("blue");
-        Pallet.colors[z].green = row.getInt("green");
-        z++;
-      }
-      Pallet = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
-      //for (TableRow row : colorTable.rows()) {
-      //  c[z] = new Color();
-      //  c[z].red = row.getInt("red");
-      //  c[z].blue = row.getInt("blue");
-      //  c[z].green = row.getInt("green");
-      //  z++;
-      //}
-      //Pallet.addColors(c);
-      println("Pallet successfully loaded: "+s);
-      GUIDebug = "Successfully loaded Pallet: "+s;
-      DebugC = color(0, 255, 0);
-    }
-
-    //prints Error-message and loads an empty color-pallet after it creates it
-    catch(Exception e) {
-      if (s !="empty-color-pallet.csv") {
-        println("Error while loading Color-Pallet named: "+s + " | Error: "+e);
-        Table t = new Table();
-        t.addColumn("red");
-        t.addColumn("green");
-        t.addColumn("blue");
-        saveTable(t, "color pallets/empty-color-pallet.csv");
-        loadPallet("empty-color-pallet.csv");
-        GUIDebug = "Error while loading Pallet: "+s;
-        DebugC = color(255, 0, 0);
-      } else {
-        GUIDebug = "Error while loading Pallet: "+s;
-        DebugC = color(255, 0, 0);
-        println("Error while loading empty Color-Pallet: "+e);
-      }
-    }
-  }
-}
-
-//saves the current Pallet into a .csv file with the name 's' in /color pallets/
-void savePallet(String s, ColorPallet p, PImage img) {
-  Table t = new Table();
-  t.addColumn("red");
-  t.addColumn("green");
-  t.addColumn("blue");
-  img.loadPixels();
-  for (int i = 0; i < p.pallet.length; i++) {
-    TableRow r = t.addRow();
-    r.setInt("red", int(red(p.pallet[i])));
-    r.setInt("green", int(green(p.pallet[i])));
-    r.setInt("blue", int(blue(p.pallet[i])));
-  }
-  saveTable(t, "color pallets/"+s+".csv");
-  loading = "";
-  DebugC = color(0, 255, 0);
-  GUIDebug ="Successfully saved Pallet: "+"color pallets/"+s+".csv";
-  println("Successfully saved Pallet: "+"color pallets/"+s+".csv");
-}
-
 //returns an Image that recreates an Image with a Color-pallet (only with specific colors)
 PImage matchPicture(PImage img, Color[] pallet) {
   ColorPicture pixelArray = new ColorPicture(img);
   for (int y = 0; y < img.height; y++) {
     for (int x = 0; x < img.width; x++) {
       pixelArray.setC(matchColor(pallet, pixelArray.getC(x, y)), pixelArray.getZ(x, y));
-      Prozent = int((float(y*img.height+y)/float(img.height*img.width))*100f);
-      loading = ""+ Prozent+"% finished";
     }
   }
   println("Matched Picture successfully!");
@@ -371,7 +267,6 @@ void matchP() {
   DebugC = color(0, 255, 0);
   textSize(24*GUIScaleW);
   GUIDebug = "Successfully matched Picture with pallet";
-  loading = "";
 }
 
 void mousePressed() {
@@ -463,7 +358,16 @@ void mouseReleased() {
       PVector v = getCoordinatesInImage(mouseX, mouseY);
       try {
         ColorPicture pixelArray = new ColorPicture(image);
-        Pallet.addColor(pixelArray.getC(floor(v.x), floor(v.y)));
+        Color c = pixelArray.getC(floor(v.x), floor(v.y));
+        int i = 0;
+        for (Color col : Pallet.colors) {
+          if (c.red == col.red && c.green == col.green && c.blue == col.blue) {
+            Pallet.deleteColor(i);
+          }
+          i++;
+        }
+        Pallet.addColor(c);
+
 
         isColorPicking = !isColorPicking;
         b_Pick_Color.pictureChange();
@@ -560,25 +464,27 @@ void mouseReleased() {
   if (layer == 0) {//[Button pressed layer 0]
 
     if (b_Import.touch() && mouseButton == LEFT) {
+      PImage img = image;
       try {
         addHistory();
         image = loadImage(tf_Import.txtBox.Text);
-        //if (image.width > 256 || height > 256) {
-        //  if (image.width>image.height) {
-        //    image.resize(255, int((image.height/image.width*1f)*255));
-        //  } else {
-        //    image.resize(int((image.width/image.height*1f)*255),255 );
-        //  }
-        //}
-        DebugC = color(0, 255, 0);
-        GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
-        thread("updateHighRes");
-        println("Picture successfully loaded: "+tf_Import.txtBox.Text);
+        if (image != null) {
+          thread("updateHighRes");
+          DebugC = color(0, 255, 0);
+          GUIDebug = "Successfully loaded Picture named: " + tf_Import.txtBox.Text;
+          println("[MouseReleased] Picture successfully loaded: "+tf_Import.txtBox.Text);
+        } else {
+          history.remove(history.size()-1);
+          image = img;
+          DebugC = color(255, 0, 0);
+          GUIDebug = "No image found to import named: " + tf_Import.txtBox.Text;
+          println("[MouseReleased] No image found to import!");
+        }
       }
       catch(Exception e) {
-        println("mouseReleased-Function 1: "+e);
+        println("[MouseReleased] Error while importing Image (Button-press): "+e);
         DebugC = color(255, 0, 0);
-        GUIDebug = "Invalid name or file not found: " + tf_Import.txtBox.Text;
+        GUIDebug = "Error while importing image: " + tf_Import.txtBox.Text;
       }
     }
 
@@ -627,7 +533,7 @@ void mouseReleased() {
       pg.endDraw();
 
       image = pg;
-      updateHighRes();
+      thread("updateHighRes");
     }
 
 
@@ -719,13 +625,13 @@ void mouseReleased() {
   }
   if (layer == 1) {//[Button pressed layer 1] [ni]
     if (b_Import.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      loadPallet(tf_Import.txtBox.Text);
+      Pallet.loadPallet(tf_Import.txtBox.Text);
     }
     if (b_Img_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      thread("loadPalletWithImage");
+      Pallet.loadPalletWithImage(image);
     }
     if (b_Save.touch() && mouseButton == LEFT) {//[Edit Buttons]
-      savePallet(tf_Save.txtBox.Text, Pallet, image);
+      Pallet.savePallet(tf_Save.txtBox.Text, Pallet, image);
     }
     if (b_Clear_Pallet.touch() && mouseButton == LEFT) {//[Edit Buttons]
       Pallet.clearPallet();
@@ -774,44 +680,6 @@ void addHistory() {
   pg.image(image, 0, 0);
   pg.endDraw();
   history.add(pg);
-}
-
-//creates a Color-Pallet with an Image, saves it in "color pallets/image-pallet.csv" and then loads it
-void loadPalletWithImage() {
-  PImage img = image;
-  Table t = new Table();
-  t.addColumn("red");
-  t.addColumn("green");
-  t.addColumn("blue");
-  img.loadPixels();
-  for (Color c : Pallet.colors) {
-    TableRow r = t.addRow();
-    r.setInt("red", c.red);
-    r.setInt("green", c.green);
-    r.setInt("blue", c.blue);
-  }
-  for (int i = 0; i < img.width; i++) {
-    for (int j = 0; j < img.height; j++) {
-      boolean isDouble = false;
-      color c = img.get(i, j);
-      for (TableRow  r : t.rows()) {
-        if (r.getInt("red") == red(c) && r.getInt("green") == green(c) && r.getInt("blue") == blue(c)) {
-          isDouble = true;
-        }
-      }
-      if (isDouble == false) {
-        TableRow r = t.addRow();
-        r.setInt("red", int(red(c)));
-        r.setInt("green", int(green(c)));
-        r.setInt("blue", int(blue(c)));
-      }
-      Prozent = int((float(i*img.height+j)/float(img.height*img.width))*100f);
-      loading = ""+ Prozent+"% finished";
-    }
-  }
-  saveTable(t, "color pallets/image-pallet.csv");
-  loading = "";
-  loadPallet("image-pallet.csv");
 }
 
 //renders Image with the correct rendering-modes (isPixelMode: sharp pixels; isGrid: Grid of Pixels)
@@ -917,7 +785,7 @@ PImage drawXYRGB(PImage img, float w, float h) {
         if (isXY) {
           pg.textAlign(CORNER);
           pg.textSize((w/img.width)/5);
-          pg.text(i+";"+j, i*(w/img.width), j*(h/img.height)+(w/img.width)/5); //marker [Error] prints with wrong y-coordinate if width>height
+          pg.text(i+";"+j, i*(w/img.width), j*(h/img.height)+(w/img.width)/5);
         }
         if (isRGB) {
           pg.textSize((w/img.width)/7);
@@ -935,6 +803,9 @@ PImage drawXYRGB(PImage img, float w, float h) {
 
 void updateHighRes() {
   try {
+    if (image == null) {
+      println("[updateHighRes] No image found to upadte highRes!");
+    }
     int resolutionHighRes = int((1f/image.width)*1600);
     PGraphics pg;
     pg = createGraphics(int(image.width*resolutionHighRes), int(image.height*resolutionHighRes));
@@ -947,7 +818,6 @@ void updateHighRes() {
         pg.fill(image.pixels[i*image.width+j]);
         pg.rect(j*(image.width*resolutionHighRes/image.width), i*(image.height*resolutionHighRes/image.height), (image.width*resolutionHighRes/image.width), (image.height*resolutionHighRes/image.height));
         //fill(255-floor(((i*image.width+j)/((image.height*image.width)*1f))*255f), floor(((i*image.width+j)/((image.height*image.width)*1f))*100f), 0);
-        loading = "Create high-resolution Image: "+floor(((i*image.width+j)/((image.height*image.width)*1f))*100f)+"%";
       }
     }
     pg.endDraw();
@@ -955,10 +825,9 @@ void updateHighRes() {
     highRes = pg;
     image.save(savePath("auto save/last_session_"+day()+"-"+month()+"-"+year()+"_"+hour()+".png"));
     image.save(savePath("auto save/last_session.png"));
-    loading="";
   }
   catch(Exception e) {
-    println("[createHighRes] Error while creating a highRes-Image: "+e);
+    println("[updateHighRes] Error while creating a highRes-Image: "+e);
   }
 }
 
@@ -1166,7 +1035,7 @@ void loadGUI() {
   b_XY = new Button(true, I_on_XY, I_off_XY, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
 
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
-  loadPallet("colors.csv");
+  Pallet.loadPallet("colors.csv");
   println("[loadGUI] Loaded GUI");
 }
 

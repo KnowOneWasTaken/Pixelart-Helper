@@ -58,4 +58,11 @@ class Color { //Class with 3 integer values that describe red, green and blue of
   int getBlue() {
     return blue;
   }
+  
+  boolean equalsTo(Color c) {
+   if(red == c.red && blue == c.blue && green == c.green) {
+    return true; 
+   }
+   return false;
+  }
 }
