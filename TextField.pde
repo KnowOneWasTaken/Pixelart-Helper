@@ -22,6 +22,9 @@ class TextField {
 
   void display() {
     textSize(h/2.5);
+    fill(50, 50, 50, 100);
+    noStroke();
+    rect(x-GUIScaleW*3, y, textWidth(text + ' '), h/2+GUIScaleH*2);
     fill(255);
     text(text, x, y+h/2-h/12);
     txtBox.display();

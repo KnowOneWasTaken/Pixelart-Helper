@@ -17,7 +17,7 @@ class ColorPallet {
   ColorPallet(Color[] col, int x, int y, int w, int h, boolean isVertically) {
     pallet = new color[col.length];
     for (int i = 0; i < col.length; i++) {
-      pallet[i] = color(col[i].red, col[i].green, col[i].blue);
+      pallet[i] = color(col[i].red, col[i].green, col[i].blue, col[i].alpha);
       colors = col;
     }
     this.displayX = x;
@@ -229,18 +229,15 @@ class ColorPallet {
       if (s.equals("0") || s.equals("1") || s.equals("2") || s.equals("3") || s.equals("4") || s.equals("5") || s.equals("6") || s.equals("7") || s.equals("8") || s.equals("9")) {
         return true;
       } else {
-        println("String: "+s+", no Int! Length: "+s.length());
         return false;
       }
     } else {
       boolean isInt = true;
       for (int i = 0; i < s.length(); i++) {
-        println("String: "+s+", Substring: "+s.substring(i, i+1)+", isNumber: "+isNumber(s.substring(i, i+1)));
         if (!isNumber(s.substring(i, i+1))) {
           isInt = false;
         }
       }
-      println("String: "+s+", "+isInt);
       return isInt;
     }
   }
@@ -265,6 +262,7 @@ class ColorPallet {
     } else {
       colorWidth = ((displayW*1f)/(pallet.length*1f));
     }
+    autoSave("auto save/last_session.csv");
   }
 
   private boolean isInPallet(Color c) {

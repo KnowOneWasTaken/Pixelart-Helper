@@ -15,7 +15,7 @@ class ColorPicture {
     image.loadPixels();
     for (int i = 0; i<pWidth*pHeight; i++) {
       color c = image.pixels[i];
-      pixel[i] = new Color(int(red(c)), int(green(c)), int(blue(c)));
+      pixel[i] = new Color(int(red(c)), int(green(c)), int(blue(c)), int(alpha(c)));
     }
   }
 
@@ -53,7 +53,7 @@ class ColorPicture {
     PImage img = createImage(pWidth, pHeight, RGB);
     img.loadPixels();
     for (int i = 0; i < img.pixels.length; i++) {
-      img.pixels[i] = color(pixel[i].red, pixel[i].green, pixel[i].blue);
+      img.pixels[i] = color(pixel[i].red, pixel[i].green, pixel[i].blue, pixel[i].alpha);
     }
     img.updatePixels();
     return img;

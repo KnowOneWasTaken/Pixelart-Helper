@@ -217,12 +217,13 @@ class Textbox {
   }
 
   private void addText(char text) {
-    if (textWidth(Text + text)+textWidth(text) < w) {
+    textSize(textSize);
+    if (textWidth(Text + text)+textWidth(text)*4 < w) {
       Text += text;
       TextLength++;
     } else {
       if (expand&&(textWidth(text)*2+w+x)<=width) {
-        w=int(textWidth(text)*2)+w;
+        w=int(textWidth(Text + text)+textWidth(text));
         if (w<min_w) {
           w=min_w;
         }
@@ -233,10 +234,11 @@ class Textbox {
   }
 
   private void backspace() {
+    textSize(textSize);
     if (TextLength - 1 >= 0) {
       Text = Text.substring(0, TextLength - 1);
       TextLength--;
-      w=int(textWidth(Text)*2+textWidth("Q")*2);
+      w=int(textWidth(Text)+textWidth("Q"));
       if (w<min_w) {
         w=min_w;
       }

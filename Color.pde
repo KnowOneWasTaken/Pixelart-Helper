@@ -2,10 +2,19 @@ class Color { //Class with 3 integer values that describe red, green and blue of
   int red;
   int green;
   int blue;
+  int alpha = 255;
   Color(int red, int green, int blue) {
     this.red = red;
     this.green = green;
     this.blue = blue;
+    maxMin();
+  }
+  
+  Color(int red, int green, int blue, int alpha) {
+    this.red = red;
+    this.green = green;
+    this.blue = blue;
+    this.alpha = alpha;
     maxMin();
   }
 
@@ -20,11 +29,12 @@ class Color { //Class with 3 integer values that describe red, green and blue of
     red = int(red(c));
     green = int(green(c));
     blue = int(blue(c));
+    alpha = int(alpha(c));
     maxMin();
   }
 
   color getColor() {
-    return color(red, green, blue, 255);
+    return color(red, green, blue, alpha);
   }
 
   private void maxMin() { //sets the RGB-values in the RGB-range, if they are higher than 255 or lower than 0
@@ -46,6 +56,12 @@ class Color { //Class with 3 integer values that describe red, green and blue of
     if (blue < 0) {
       blue = 0;
     }
+    if (alpha < 0) {
+      alpha = 0;
+    }
+    if (alpha < 0) {
+      alpha = 0;
+    }
   }
 
   //returns the values of R,G, and B (red,green,blue)
@@ -58,9 +74,18 @@ class Color { //Class with 3 integer values that describe red, green and blue of
   int getBlue() {
     return blue;
   }
+  int getAlpha() {
+     return alpha; 
+  }
 
   boolean equalsTo(Color c) {
     if (red == c.red && blue == c.blue && green == c.green) {
+      return true;
+    }
+    return false;
+  }
+  boolean equalsToAlpha(Color c) {
+    if (red == c.red && blue == c.blue && green == c.green && alpha == c.alpha) {
       return true;
     }
     return false;

@@ -46,10 +46,10 @@ float tempScale; //saves the scale (zoom) of the frame for the next frame: if im
 boolean isPixelMode = true, isGrid = false, isColorPicking = false, isFilter = true, isEdit = true, isRGB = false, isXY = false, isPencil = false;
 float GUIScaleW, GUIScaleH;
 String Import_0 = "Import Image named: (+.png/.jpg)";
-String Save_0 = "Save Image as";
-String Change_0 = "Change Size (x;y)";
+String Save_0 = "Save Image as:";
+String Change_0 = "Change Size: (x;y)";
 String Import_1 = "Import Color-Pallet named: (+.csv/.png/.jpg)";
-String Save_1 = "Save Pallet as";
+String Save_1 = "Save Pallet as:";
 String Import_box_0 = "pixelart1.png";
 String Save_box_0 = "save";
 String Change_box_0 = "64;64";
@@ -71,12 +71,13 @@ void setup() {
   size(720, 480, P2D);
   //fullScreen(P2D);
   frameRate(30);
-  surface.setTitle("Picture-Matcher v1.0.1");
+  surface.setTitle("Pixelart Helper v1.1.2");
   surface.setResizable(true);
   surface.setLocation(0, 0);
   image = createImage(10, 10, RGB);
   loadImages(); //loads all necessary Images
-  f = createFont("Arial", 50);
+  f = createFont("Arial", 50, true);
+  textFont(f);
 
   try {
     image = loadImage("auto save/last_session.png");
@@ -89,7 +90,9 @@ void setup() {
     println("[Setup] Error while loading last sessions Image: "+e);
     image = createImage(10, 10, RGB);
   }
+
   loadGUI();
+
   try {
     Pallet.loadPallet("../auto save/last_session.csv");
     if (Pallet.colors.length == 0) {
@@ -100,18 +103,19 @@ void setup() {
     println("[Setup] Couldn't load last_session.csv");
     Pallet.loadPallet("colors.csv");
   }
-  //"auto save/last_session_Pallet_2.csv"
+
   try {
     Pallet2.loadPallet("../auto save/last_session_Pallet_2.csv");
     if (Pallet2.colors.length == 0) {
       Pallet2.loadPallet("colors.csv");
+      println("[Setup] Couldn't load last_session_Pallet_2.csv");
     }
   }
   catch(Exception e) {
     println("[Setup] Couldn't load last_session_Pallet_2.csv.csv");
     Pallet2.loadPallet("colors.csv");
   }
-  s.scale = 0.125;
+
   updateHighRes();
   oldWidth = width;
   oldHeight = height;
@@ -272,12 +276,18 @@ void draw() {
     text(int(frameRate), GUIScaleW*(1920-12), GUIScaleH*(12));
 
     textSize(18*GUIScaleW);
-    text("Zoom: "+int(s.scale*100)+"%", GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
+    if (int((getZoom()*1f/image.height*1f))>10) {
+      text("Zoom: x"+int((getZoom()*1f/image.height*1f)), GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
+    } else if(int((getZoom()*1f/image.height*1f))>4){
+      text("Zoom: x"+(int(((getZoom()*1f/image.height*1f))*10f))/10f, GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
+    } else {
+      text("Zoom: x"+(int(((getZoom()*1f/image.height*1f))*100f))/100f, GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
+    }
     text("Size: "+image.width+", "+image.height, GUIScaleW*(1920/2+250+15), height-GUIScaleH*2);
     if (isInImage()) {
-      text("Mouse: "+int(getCoordinatesInImage(mouseX, mouseY).x)+", "+int(getCoordinatesInImage(mouseX, mouseY).y), GUIScaleW*(1920/2+250+15+100), height-GUIScaleH*20);
+      text("Mouse: "+int(getCoordinatesInImage(mouseX, mouseY).x)+", "+int(getCoordinatesInImage(mouseX, mouseY).y), GUIScaleW*(1920/2+250+15+100+50), height-GUIScaleH*20);
     }
-    text("Pallet length: "+Pallet.colors.length, GUIScaleW*(1920/2+250+15+100), height-GUIScaleH*2);
+    text("Pallet length: "+Pallet.colors.length, GUIScaleW*(1920/2+250+15+100+50), height-GUIScaleH*2);
   }
   catch(Exception e) {
     println("[Draw] Error while calculating oldWidth, mouseIsPressed() and rendering History: "+e);
@@ -376,7 +386,7 @@ void mouseIsPressed() {
 }
 
 void keyPressed() {
-  if (key == ' ') {
+  if (key == ' ' && (!tf_Change.txtBox.isSelected && !tf_Add.txtBox.isSelected && !tf_Import.txtBox.isSelected && !tf_Save.txtBox.isSelected)) {
     ofset = new PVector(0, 0);
     ofsetTemp = new PVector(0, 0);
   }
@@ -748,13 +758,17 @@ void mouseReleased() {
       Pallet.isOneColorSelected = false;
       Pallet.colorPicked = -1;
       Pallet2.autoSave("auto save/last_session_Pallet_2.csv");
+      Pallet.autoSave("auto save/last_session.csv");
       println("[MouseReleased] [layer==1] [Switch] Switched between Pallets");
       DebugC = color(0, 255, 0);
       GUIDebug = "Switched between Pallets";
     }
     if (b_Add.touch() && mouseButton == LEFT) {
       Color c = Pallet.getColorString(tf_Add.txtBox.Text);
-      println("Added Color to Pallet: r: "+c.red+", green: "+c.green+", blue: "+c.blue);
+      Pallet.addColor(c);
+      println("[MouseReleased] [layer==1] [Add] Added Color to Pallet: r: "+c.red+", green: "+c.green+", blue: "+c.blue);
+      DebugC = color(0, 255, 0);
+      GUIDebug = "Added Color to Pallet";
     }
   }
   if (layer == 2) {//[Button pressed layer 2] [ni]
@@ -1165,9 +1179,9 @@ PVector getCoordinatesInImage(int x, int y) {
 
 float getZoom() {
   if (image.height/image.width<image.width/image.height) {
-    return (image.width/image.height)*width*4*(s.scale/16)*image.width*6*s.scale+20;
+    return (image.width/image.height)*width*24*(s.scale/16)*image.width*s.scale+20;
   } else {
-    return (image.height/image.width)*height*4*(s.scale/16)*image.height*6*s.scale+20;
+    return (image.height/image.width)*height*24*(s.scale/16)*image.height*s.scale+20;
   }
 }
 
@@ -1235,8 +1249,9 @@ void loadGUI() {
   b_XY = new Button(true, I_on_XY, I_off_XY, false, int(GUIScaleW*(20)), int(GUIScaleH*(72+48*3)), int(GUIScaleW*60), int(GUIScaleH*38), i, false);
 
   s=new Slider((width/2)-int(GUIScaleW*250), height-int(GUIScaleH*30), int(GUIScaleW*500), int(GUIScaleH*20));
+  s.scale = 0.125;
   Pallet = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
-  Pallet2 = new ColorPallet(Pallet.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
+  Pallet2 = new ColorPallet(Pallet2.colors, 0, height-int(GUIScaleH*80), width, int(GUIScaleW*30), false);
   println("[loadGUI] Loaded GUI");
 }
 
@@ -1275,10 +1290,11 @@ void setTouchGUI() {
   b[28] = b_Back;
   b[29] = b_Add;
 
-  TextField[] tf = new TextField[3];
+  TextField[] tf = new TextField[4];
   tf[0] = tf_Import;
   tf[1] = tf_Save;
   tf[2] = tf_Change;
+  tf[3] = tf_Add;
 
   for (Button bn : b) {
     if (bn.touch()) {
