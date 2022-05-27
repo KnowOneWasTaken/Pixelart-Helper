@@ -5,6 +5,8 @@ class Textbox {
   int x = 0, y = 0, h = 35, w = 200;
   color bgC = color(140, 140, 140, 175); //background color
   color fgC = color(0, 0, 0, 175); //foreground color
+  int min_w;
+  boolean isNumberBox = false;
 
   boolean BorderEnabled = true;
   int BorderWeight = 5;
@@ -24,6 +26,7 @@ class Textbox {
     this.w = w;
     this.h = h;
     textSize = int(GUIScaleW*24);
+    min_w = w;
   }
 
   Textbox(int x, int y, int w, int h, String s) {
@@ -33,12 +36,16 @@ class Textbox {
     this.h = h;
     textSize = int(GUIScaleW*24);
     replaceText(s);
+    min_w = w;
   }
 
   void replaceText(String s) {
     Text = s;
     TextLength = s.length();
-    //w=int(textWidth(Text)+textWidth("Q")*2);
+    //w=int(textWidth(Text)*2+textWidth("Q")*2);
+    if (w<min_w) {
+      w=min_w;
+    }
   }
 
   void display() {
@@ -65,11 +72,13 @@ class Textbox {
       if (Keycode == (int)BACKSPACE) {
         backspace();
       } else if (Keycode == 32) {
-        addText(' ');
+        if (!isNumberBox) {
+          addText(' ');
+        }
       } else if (Keycode == (int)ENTER) {
         isSelected = false;
         return true;
-      } else {
+      } else if (!isNumberBox) {
         boolean isKeyCapitalLetter = (Key >= 'A' && Key <= 'Z');
         boolean isKeySmallLetter = (Key >= 'a' && Key <= 'z');
         boolean isKeyNumber = (Key >= '0' && Key <= '9');
@@ -192,6 +201,15 @@ class Textbox {
           addText('Ö');
           break;
         }
+      } else {
+        boolean isKeyNumber = (Key >= '0' && Key <= '9');
+
+        if (isKeyNumber) {
+          addText(Key);
+        }
+        if (key == ';') {
+          addText(';');
+        }
       }
     }
 
@@ -205,6 +223,9 @@ class Textbox {
     } else {
       if (expand&&(textWidth(text)*2+w+x)<=width) {
         w=int(textWidth(text)*2)+w;
+        if (w<min_w) {
+          w=min_w;
+        }
         Text += text;
         TextLength++;
       }
@@ -215,7 +236,10 @@ class Textbox {
     if (TextLength - 1 >= 0) {
       Text = Text.substring(0, TextLength - 1);
       TextLength--;
-      w=int(textWidth(Text)+textWidth("Q")*2);
+      w=int(textWidth(Text)*2+textWidth("Q")*2);
+      if (w<min_w) {
+        w=min_w;
+      }
     }
   }
 

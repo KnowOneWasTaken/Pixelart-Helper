@@ -5,6 +5,8 @@ class ColorPallet {
   int colorPicked = -1;
   float colorWidth;
   float colorHeight;
+  String threadLoad ="";
+  PImage threadLoadImage = new PImage();
 
   boolean isOneColorSelected = false; //represents if a color of the pallet is picked or not
   boolean isVertically;
@@ -64,7 +66,7 @@ class ColorPallet {
     pallet = new color[0];
     colors = new Color[0];
     println("[ColorPallet] [clearPallet] Pallet cleard!");
-    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    autoSave("auto save/last_session.csv");
     isOneColorSelected = false;
     colorPicked = -1;
   }
@@ -78,30 +80,35 @@ class ColorPallet {
   }
 
   void calculateColorPicked(int x, int y) {
-    if (inPallet(x, y)) {
-      isOneColorSelected = true;
-      if (isVertically) {
-        if (colorPicked != floor((y-displayY)/colorHeight)) {
-          colorPicked = floor((y-displayY)/colorHeight);
+    if (colors.length > 0) {
+      if (inPallet(x, y)) {
+        isOneColorSelected = true;
+        if (isVertically) {
+          if (colorPicked != floor((y-displayY)/colorHeight)) {
+            colorPicked = floor((y-displayY)/colorHeight);
+          } else {
+            colorPicked = -1;
+            isOneColorSelected = false;
+          }
         } else {
-          colorPicked = -1;
-          isOneColorSelected = false;
+          if (colorPicked != floor((x-displayX)/colorWidth)) {
+            colorPicked = floor((x-displayX)/colorWidth);
+          } else {
+            colorPicked = -1;
+            isOneColorSelected = false;
+          }
         }
       } else {
-        if (colorPicked != floor((x-displayX)/colorWidth)) {
-          colorPicked = floor((x-displayX)/colorWidth);
+        if ((isOneColorSelected && isInImage()) || (touchGUI && isOneColorSelected)) {
+          isOneColorSelected = true;
         } else {
           colorPicked = -1;
           isOneColorSelected = false;
         }
       }
     } else {
-      if ((isOneColorSelected && isInImage()) || (touchGUI && isOneColorSelected)) {
-        isOneColorSelected = true;
-      } else {
-        colorPicked = -1;
-        isOneColorSelected = false;
-      }
+      colorPicked = -1;
+      isOneColorSelected = false;
     }
   }
 
@@ -145,7 +152,7 @@ class ColorPallet {
       }
     }
     println("[ColorPallet] [clearPallet] Color deleted: "+z);
-    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    autoSave("auto save/last_session.csv");
   }
 
   private void removeLast(int z) {
@@ -161,6 +168,85 @@ class ColorPallet {
 
   private void removeLast() {
     removeLast(1);
+  }
+
+  Color getColorString(String s) {
+    s = s.toLowerCase();
+    s = s.trim();
+    String red  = "";
+    String green = "";
+    String blue = "";
+    int redValue = 0;
+    int greenValue = 0;
+    int blueValue = 0;
+
+    if (s.length() < 12 && s.length() != 4 && s.length() > 0) {
+      if (s.indexOf(";") != -1) {
+        red = s.substring(0, s.indexOf(";"));
+        if (!isNumber(red)) {
+          red = "0";
+        }
+
+        String gNb = s.substring(s.indexOf(";")+1);
+        if (gNb.indexOf(";") != -1) {
+          green = gNb.substring(0, gNb.indexOf(";"));
+          if (!isNumber(green)) {
+            green = "0";
+          }
+
+          blue = gNb.substring(gNb.indexOf(";")+1);
+          if (!isNumber(blue)) {
+            blue = "0";
+          }
+        } else {
+          green = "0";
+          blue = "0";
+        }
+      } else {
+        if (s.length() > 0 && s.length() <4) {
+          if (isNumber(s)) {
+            red = s;
+            green = s;
+            blue = s;
+          } else {
+            return new Color(0, 0, 0);
+          }
+        } else {
+          return new Color(0, 0, 0);
+        }
+      }
+      redValue = Integer.parseInt(red);
+      greenValue = Integer.parseInt(green);
+      blueValue = Integer.parseInt(blue);
+      return new Color(redValue, greenValue, blueValue);
+    } else {
+      return new Color(0, 0, 0);
+    }
+  }
+
+  boolean isNumber(String s) {
+    if (s.length() == 1) {
+      if (s.equals("0") || s.equals("1") || s.equals("2") || s.equals("3") || s.equals("4") || s.equals("5") || s.equals("6") || s.equals("7") || s.equals("8") || s.equals("9")) {
+        return true;
+      } else {
+        println("String: "+s+", no Int! Length: "+s.length());
+        return false;
+      }
+    } else {
+      boolean isInt = true;
+      for (int i = 0; i < s.length(); i++) {
+        println("String: "+s+", Substring: "+s.substring(i, i+1)+", isNumber: "+isNumber(s.substring(i, i+1)));
+        if (!isNumber(s.substring(i, i+1))) {
+          isInt = false;
+        }
+      }
+      println("String: "+s+", "+isInt);
+      return isInt;
+    }
+  }
+
+  void addColor(String s) {
+    addColor(getColorString(s));
   }
 
   void addColor(Color c) {
@@ -200,6 +286,7 @@ class ColorPallet {
   }
 
   void addColors(Color[] c) {
+    //c = deleteDoubles(c);
     Color[] cl = colors;
     color[] pl = pallet;
     colors = new Color[colors.length+c.length];
@@ -224,6 +311,27 @@ class ColorPallet {
     }
   }
 
+  Color[] deleteDoubles(Color[] cols) {
+    int deleted = 0;
+    for (int i = 0; i < cols.length; i++) {
+      for (int j = 0; j < i; j++) {
+        if (cols[i].red == cols[j].red && cols[i].green == cols[j].green && cols[i].blue == cols[j].blue) {
+          cols[j] = null;
+          deleted++;
+        }
+      }
+    }
+    Color[] cols2 = new Color[cols.length-deleted];
+    int z = 0;
+    for (int i = 0; i < cols.length; i++) {
+      if (cols[i] != null) {
+        cols2[z] = cols[i];
+        z++;
+      }
+    }
+    return cols2;
+  }
+
   void addTable(Table t) {
     Color[] cols = new Color[t.getRowCount()];
     int i = 0;
@@ -232,7 +340,7 @@ class ColorPallet {
       i++;
     }
     addColors(cols);
-    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    autoSave("auto save/last_session.csv");
   }
 
   //creates a Color-Pallet with an Image, saves it in "color pallets/image-pallet.csv" and then loads it
@@ -270,7 +378,7 @@ class ColorPallet {
     println("[ColorPallet] [loadPalletWithImage] Imported Pallet out of Image-File");
     GUIDebug = "Imported Pallet out of Image-File";
     DebugC = color(0, 255, 0);
-    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    autoSave("auto save/last_session.csv");
   }
 
   void loadPallet(String s) {//loads the Color-pallet and stores it in a Array of Colors (Color[] colors) //marker
@@ -328,12 +436,11 @@ class ColorPallet {
   }
 
   //saves the current Pallet into a .csv file with the name 's' in /color pallets/
-  void savePallet(String s, PImage img) {
+  void savePallet(String s) {
     Table t = new Table();
     t.addColumn("red");
     t.addColumn("green");
     t.addColumn("blue");
-    img.loadPixels();
     for (int i = 0; i < pallet.length; i++) {
       TableRow r = t.addRow();
       r.setInt("red", int(red(pallet[i])));
@@ -360,57 +467,21 @@ class ColorPallet {
     return t;
   }
 
+  void autoSave(String s) {
+    saveTable(getTable(), savePath(s));
+  }
+
   void sortColors() {
     float[] values = new float[colors.length];
     int[] positions = new int[colors.length];
     for (int i = 0; i < colors.length; i++) {
-      //int red = colors[i].red;
-      //int green = colors[i].green;
-      //int blue = colors[i].blue;
-      //float percent = 0;
-      //if(red > green && red > blue) {
-      //    percent = 255f/red;
-      //    red = 255;
-      //    green = int(green * percent);
-      //    blue = int(blue * percent);
-      //    if(green < blue) {
-      //      blue = int(-sqrt(((sqrt((pow(255f-green,2)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
-      //      green = 0;
-      //    } else {
-      //      green = int(-sqrt(((sqrt((pow(255f-green,2)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
-      //      blue = 0;
-      //    }
-      //}
-      //if(green > red && green > blue) {
-      //    percent = 255f/green;
-      //    green = 255;
-      //    red = int(red * percent);
-      //    blue = int(blue * percent);
-      //    if(red < blue) {
-      //      blue = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
-      //      red = 0;
-      //    } else {
-      //      red = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-blue,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
-      //      println(-sqrt(abs(pow((sqrt((pow(255f-red,2f)+pow(255f-blue,2f))))/saturation(color(red,green,blue)),2)-pow(255f,2f)))+255f);
-      //      blue = 0;
-      //    }
-      //}
-      //if(blue > red && blue > green) {
-      //    percent = 255f/blue;
-      //    blue = 255;
-      //    red = int(red * percent);
-      //    green = int(green * percent);
-      //    if(red < green) {
-      //      green = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-green,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
-      //      red = 0;
-      //    } else {
-      //      red = int(-sqrt(((sqrt((pow(255f-red,2f)+pow(255f-green,2f))))/saturation(color(red,green,blue)))-pow(255f,2f))+255f);
-      //      green = 0;
-      //    }
-      //}
 
       //values[i] = colors[i].red*1 + 10 * colors[i].green + 100 * colors[i].blue;
-      values[i] = brightness(colors[i].getColor());
+      //values[i] = brightness(colors[i].getColor());
+      //values[i] = -colors[i].red+colors[i].blue-colors[i].green/2+brightness(pallet[i])/2;
+      //values[i] = -colors[i].red+colors[i].blue+colors[i].green/2+brightness(pallet[i])/2;
+      //values[i] = -colors[i].red+colors[i].blue+brightness(pallet[i])/2;
+      values[i] = -sqrt(pow(colors[i].red-255, 2)+pow(colors[i].green, 2)+pow(colors[i].blue, 2)); //+sqrt(pow(colors[i].red, 2)+pow(colors[i].green, 2)+pow(colors[i].blue-255, 2))
       positions[i] = i;
     }
     for (int i = 0; i < colors.length-1; i++) {
@@ -438,7 +509,7 @@ class ColorPallet {
       colors[i] = cols[positions[i]];
       pallet[i] = pal[positions[i]];
     }
-    saveTable(getTable(), savePath("auto save/last_session.csv"));
+    autoSave("auto save/last_session.csv");
     DebugC = color(0, 255, 0);
     GUIDebug ="Sorted Colors in Pallet";
     println("[ColorPallet] [sortColors] Sorted Colors in Pallet");

@@ -3,5 +3,5 @@ This is a program written in Processing (Java) for Pixel-Art-Designers. It can h
 designed for this purpose. 
 
 Author: Philipp Schröder aka KnowOneWasTaken
-Version: 1.1.0
-Last time edited: 26.05.2022
+Version: 1.1.2
+Last time edited: 27.05.2022
