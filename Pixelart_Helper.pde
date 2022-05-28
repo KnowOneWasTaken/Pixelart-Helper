@@ -278,7 +278,7 @@ void draw() {
     textSize(18*GUIScaleW);
     if (int((getZoom()*1f/image.height*1f))>10) {
       text("Zoom: x"+int((getZoom()*1f/image.height*1f)), GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
-    } else if(int((getZoom()*1f/image.height*1f))>4){
+    } else if (int((getZoom()*1f/image.height*1f))>4) {
       text("Zoom: x"+(int(((getZoom()*1f/image.height*1f))*10f))/10f, GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
     } else {
       text("Zoom: x"+(int(((getZoom()*1f/image.height*1f))*100f))/100f, GUIScaleW*(1920/2+250+15), height-GUIScaleH*20);
@@ -288,6 +288,14 @@ void draw() {
       text("Mouse: "+int(getCoordinatesInImage(mouseX, mouseY).x)+", "+int(getCoordinatesInImage(mouseX, mouseY).y), GUIScaleW*(1920/2+250+15+100+50), height-GUIScaleH*20);
     }
     text("Pallet length: "+Pallet.colors.length, GUIScaleW*(1920/2+250+15+100+50), height-GUIScaleH*2);
+
+    if (layer == 1) {
+      fill(Pallet.getColorString(tf_Add.txtBox.Text).getColor());
+      stroke(255, 255, 255);
+      strokeWeight(GUIScaleW*2);
+      rect(int(GUIScaleW*(88+15)), int(GUIScaleH*(525+38+10)), 30, 30);
+      noStroke();
+    }
   }
   catch(Exception e) {
     println("[Draw] Error while calculating oldWidth, mouseIsPressed() and rendering History: "+e);

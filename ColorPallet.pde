@@ -171,55 +171,74 @@ class ColorPallet {
   }
 
   Color getColorString(String s) {
-    s = s.toLowerCase();
-    s = s.trim();
-    String red  = "";
-    String green = "";
-    String blue = "";
-    int redValue = 0;
-    int greenValue = 0;
-    int blueValue = 0;
+    try {
+      s = s.toLowerCase();
+      s = s.trim();
+      String red  = "";
+      String green = "";
+      String blue = "";
+      int redValue = 0;
+      int greenValue = 0;
+      int blueValue = 0;
 
-    if (s.length() < 12 && s.length() != 4 && s.length() > 0) {
-      if (s.indexOf(";") != -1) {
-        red = s.substring(0, s.indexOf(";"));
-        if (!isNumber(red)) {
-          red = "0";
-        }
+      if (s.length() < 12 && s.length() != 4 && s.length() > 0) {
+        if (s.indexOf(";") != -1) {
 
-        String gNb = s.substring(s.indexOf(";")+1);
-        if (gNb.indexOf(";") != -1) {
-          green = gNb.substring(0, gNb.indexOf(";"));
-          if (!isNumber(green)) {
-            green = "0";
+          if (s.substring(0, s.indexOf(";")).length() > 0) {
+            red = s.substring(0, s.indexOf(";"));
+            if (!isNumber(red)) {
+              red = "0";
+            }
+          } else {
+            red = "0";
           }
 
-          blue = gNb.substring(gNb.indexOf(";")+1);
-          if (!isNumber(blue)) {
+          String gNb = s.substring(s.indexOf(";")+1);
+          if (gNb.indexOf(";") != -1) {
+            if (gNb.substring(0, gNb.indexOf(";")).length() > 0) {
+              green = gNb.substring(0, gNb.indexOf(";"));
+              if (!isNumber(green)) {
+                green = "0";
+              }
+            } else {
+              green = "0";
+            }
+
+            if (gNb.substring(gNb.indexOf(";")+1).length() > 0) {
+              blue = gNb.substring(gNb.indexOf(";")+1);
+              if (!isNumber(blue)) {
+                blue = "0";
+              }
+            } else {
+              blue = "0";
+            }
+          } else {
+            green = "0";
             blue = "0";
           }
         } else {
-          green = "0";
-          blue = "0";
-        }
-      } else {
-        if (s.length() > 0 && s.length() <4) {
-          if (isNumber(s)) {
-            red = s;
-            green = s;
-            blue = s;
+          if (s.length() > 0 && s.length() <4) {
+            if (isNumber(s)) {
+              red = s;
+              green = s;
+              blue = s;
+            } else {
+              return new Color(0, 0, 0);
+            }
           } else {
             return new Color(0, 0, 0);
           }
-        } else {
-          return new Color(0, 0, 0);
         }
+        redValue = Integer.parseInt(red);
+        greenValue = Integer.parseInt(green);
+        blueValue = Integer.parseInt(blue);
+        return new Color(redValue, greenValue, blueValue);
+      } else {
+        return new Color(0, 0, 0);
       }
-      redValue = Integer.parseInt(red);
-      greenValue = Integer.parseInt(green);
-      blueValue = Integer.parseInt(blue);
-      return new Color(redValue, greenValue, blueValue);
-    } else {
+    }
+    catch(Exception e) {
+      println("[ColorPallet] [getColorString] Error while calculating Color with String: "+e);
       return new Color(0, 0, 0);
     }
   }
