@@ -1,22 +1,20 @@
-/* //<>//
+/*
 
  Author: Philipp Schröder aka KnowOneWasTaken
- Version: 1.1.2
- Last time edited: 27.05.2022
- 
- [ni]: markers for not written code (not implemented [yet])
+ Version: 1.1.3
+ Last time edited: 28.05.2022
  
  List of Buttons:
  Menue: b_Image (switch), b_Pallet (switch), b_Rendering (switch)
- Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch)
+ Image: b_Import, b_Match, b_Save1, b_Save2, b_Filter (switch), b_Edit (switch), b_Change
  Filter: b_Relief, b_Sharpen, b_Black_And_White, b_Edges, b_Blur
  Edit: b_Rotate, b_Mirror_h, b_Mirror_v
- Pallet: b_Import (again), b_load_img_pallet, b_Save1 (again), b_Clear_Pallet, b_Sort_Colors, b_Pick_Color (switch), b_Switch
+ Pallet: b_Import (again), b_load_img_pallet, b_Save1 (again), b_Clear_Pallet, b_Sort_Colors, b_Pick_Color (switch), b_Switch, b_Add
  Rendering: b_Grid (switch), b_Pixel_Mode (switch), b_RGB_Mode (switch), b_XY_Mode (switch)
  
  List of TextFields:
  Image: tf_Import, tf_Save, tf_Change
- Pallet: tf_Import (again), tf_Save (again)
+ Pallet: tf_Import (again), tf_Save (again), tf_Add
  
  */
 PImage image = new PImage();
@@ -733,7 +731,7 @@ void mouseReleased() {
       GUIDebug = "Image mirrored on x-Axis";
     }
   }
-  if (layer == 1) {//[Button pressed layer 1] [ni]
+  if (layer == 1) {//[Button pressed layer 1]
     if (b_Import.touch() && mouseButton == LEFT) {//[Edit Buttons]
       Pallet.loadPallet(tf_Import.txtBox.Text);
     }
@@ -779,7 +777,7 @@ void mouseReleased() {
       GUIDebug = "Added Color to Pallet";
     }
   }
-  if (layer == 2) {//[Button pressed layer 2] [ni]
+  if (layer == 2) {//[Button pressed layer 2]
     if (b_Grid.touch() && mouseButton == LEFT) {//[Edit Buttons]
       isGrid = !isGrid;
       b_Grid.pictureChange();
